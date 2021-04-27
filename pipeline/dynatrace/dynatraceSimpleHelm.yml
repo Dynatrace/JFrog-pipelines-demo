@@ -104,7 +104,7 @@ pipelines:
           affinityGroup: helm_install
           integrations:
             - name: k8sIntegration
-            - name: dynatraceIntegration
+            - name: DTEnvInfo
           inputSteps:
             - name: helm_build
         execution:
@@ -113,11 +113,12 @@ pipelines:
           onExecute:
             - echo "Installing and configuring OneAgent"
             - kubectl config current-context
-            #- kubectl create namespace dynatrace
-            #- kubectl apply -f https://github.com/Dynatrace/dynatrace-oneagent-operator/releases/latest/download/kubernetes.yaml
+            - kubectl create namespace dynatrace
+            - kubectl apply -f https://github.com/Dynatrace/dynatrace-oneagent-operator/releases/latest/download/kubernetes.yaml
             #- kubectl -n dynatrace logs deployment/dynatrace-oneagent-operator
-            #- kubectl -n dynatrace create secret generic oneagent --from-literal="apiToken=${int_dynatraceIntegration_API_TOKEN}" --from-literal="paasToken=${int_dynatraceIntegration_PAAS_TOKEN}"
+            - kubectl -n dynatrace create secret generic oneagent --from-literal="apiToken=${int_DTEnvInfo_DT_API_TOKEN}" --from-literal="paasToken=${int_DTEnvInfo_DT_PAAS_TOKEN}"
             - curl -o cr.yaml https://raw.githubusercontent.com/Dynatrace/dynatrace-oneagent-operator/master/deploy/cr.yaml
+            - sed -i 's/apiUrl:.*/apiUrl: ${int_DTEnvInfo_DT_URL}' cr.yaml
             ## configure cr.yaml file when we have all the data needed
             #- kubectl apply -f cr.yaml
           onSuccess:
