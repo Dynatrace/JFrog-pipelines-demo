@@ -10,7 +10,7 @@ resources:
       buildOn:
         commit: true
 
-  - name: simpleDockerImage-aa # change
+  - name: simpleDockerImage_aa # change
     type: Image
     configuration:
       registry: simplehelmDockerIntegration
@@ -18,21 +18,21 @@ resources:
       imageName: dynatracejtpp.jfrog.io/art-docker-dynatrace/simplehelm
       imageTag: '${run_number}'
 
-  - name: simpleBuildInfo-aa
+  - name: simpleBuildInfo_aa
     type: BuildInfo
     configuration:
       sourceArtifactory: artifactoryIntegration
       buildName: SampleApp
       buildNumber: 1
 
-  - name: simpleHelmChartBuildInfo-aa
+  - name: simpleHelmChartBuildInfo_aa
     type: BuildInfo
     configuration:
       sourceArtifactory: artifactoryIntegration
       buildName: SampleApp
       buildNumber: '0.1.${run_number}'
 
-  - name: simplehelmRepoChart-aa
+  - name: simplehelmRepoChart_aa
     type: GitRepo
     configuration:
       gitProvider: GitHubIntegration
@@ -42,7 +42,7 @@ resources:
       buildOn:
         commit: false
 
-  - name: simplehelmChart-aa
+  - name: simplehelmChart_aa
     type: HelmChart
     configuration:
       sourceArtifactory: artifactoryIntegration
