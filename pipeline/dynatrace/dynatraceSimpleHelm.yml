@@ -1,5 +1,5 @@
 resources:
-  - name: helmGitHub-aa
+  - name: helmGitHub_aa
     type: GitRepo
     configuration:
       gitProvider: GitHubIntegration
