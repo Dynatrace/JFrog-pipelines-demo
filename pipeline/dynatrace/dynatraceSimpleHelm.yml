@@ -64,7 +64,7 @@ pipelines:
           integrations:
             - name: artifactoryIntegration
           inputResources:
-            - name: helmGitHub
+            - name: helmGitHub_aa
           dockerFileLocation: pipeline/dynatrace/
           dockerFileName: Dockerfile
           dockerImageName: dynatracejtpp.jfrog.io/art-docker-dynatrace/simplehelm
@@ -81,8 +81,8 @@ pipelines:
           inputSteps:
             - name: build_image
           outputResources:
-            - name: simpleBuildInfo
-            - name: simpleDockerImage
+            - name: simpleBuildInfo_aa
+            - name: simpleDockerImage_aa
 
       - name: helm_build
         type: HelmPublish
@@ -92,10 +92,10 @@ pipelines:
           inputSteps:
             - name: push_image
           inputResources:
-            - name: simplehelmRepoChart
+            - name: simplehelmRepoChart_aa
           outputResources:
-            - name: simplehelmChart
-            - name: simpleHelmChartBuildInfo
+            - name: simplehelmChart_aa
+            - name: simpleHelmChartBuildInfo_aa
 
       # Install Dynatrace agent on the cluster. Use the separate namespace
       - name: install_oneAgent_operator
