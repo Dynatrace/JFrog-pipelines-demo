@@ -134,7 +134,7 @@ pipelines:
           integrations:
             - name: k8sIntegration
           inputResources:
-            - name: simplehelmChart
+            - name: simplehelmChart_aa
           inputSteps:
             - name: install_oneAgent_operator
         execution:
