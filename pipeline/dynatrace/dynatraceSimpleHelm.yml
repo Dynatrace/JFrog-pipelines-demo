@@ -1,5 +1,5 @@
 resources:
-  - name: helmGitHub
+  - name: helmGitHub-aa
     type: GitRepo
     configuration:
       gitProvider: GitHubIntegration
@@ -10,7 +10,7 @@ resources:
       buildOn:
         commit: true
 
-  - name: simpleDockerImage # change
+  - name: simpleDockerImage-aa # change
     type: Image
     configuration:
       registry: simplehelmDockerIntegration
