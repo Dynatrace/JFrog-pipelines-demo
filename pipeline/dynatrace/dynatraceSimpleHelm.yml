@@ -35,8 +35,8 @@ resources:
   - name: simplehelmRepoChart_aa
     type: GitRepo
     configuration:
-      gitProvider: GitHubIntegration
-      path: danielmkn/pipelines-demo # replace with your repo
+      gitProvider: DT_AA_PIPELINE_INT
+      path: Dynatrace-Asad-Ali/pipelines-demo # replace with your repo
       branches:
         include: main
       buildOn:
