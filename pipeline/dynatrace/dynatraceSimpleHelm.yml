@@ -15,7 +15,7 @@ resources:
     configuration:
       registry: simplehelmDockerIntegration
       sourceRepository: art-docker-dynatrace
-      imageName: dynatracejtpp.jfrog.io/art-docker-dynatrace/simplehelm
+      imageName: dynatracejtpp.jfrog.io/art-docker-dynatrace/busybox
       imageTag: '${run_number}'
 
   - name: simpleBuildInfo_aa
@@ -40,22 +40,22 @@ resources:
       branches:
         include: main
       buildOn:
-        commit: false
+        commit: true
 
   - name: simplehelmChart_aa
     type: HelmChart
     configuration:
       sourceArtifactory: artifactoryIntegration
       repository: simplecharts
-      chart: simplehelm
-      version: '0.1.${run_number}'
+      chart: busybox
+      version: 0.0.0
 
 pipelines:
   - name: dynatrace_demo_helm_aa
     configuration:
       environmentVariables:
         readOnly:
-          my_releaseName: "simplehelm${run_number}"
+          my_releaseName: "busybox${run_number}"
     steps:
       - name: build_image
         type: DockerBuild
@@ -67,7 +67,7 @@ pipelines:
             - name: helmGitHub_aa
           dockerFileLocation: pipeline/dynatrace/
           dockerFileName: Dockerfile
-          dockerImageName: dynatracejtpp.jfrog.io/art-docker-dynatrace/simplehelm
+          dockerImageName: dynatracejtpp.jfrog.io/art-docker-dynatrace/busybox
           dockerImageTag: $run_number
 
       - name: push_image
@@ -87,16 +87,21 @@ pipelines:
       - name: helm_build
         type: HelmPublish
         configuration:
-          chartPath: pipeline/dynatrace/simplehelm/
-          #chartPath: pipeline/dynatrace/mychart/
+          helmVersion: 3
+          chartPath: pipeline/dynatrace/busybox/
           affinityGroup: helm_install
           inputSteps:
             - name: push_image
           inputResources:
             - name: simplehelmRepoChart_aa
+              trigger: false
           outputResources:
             - name: simplehelmChart_aa
             - name: simpleHelmChartBuildInfo_aa
+          execution:
+            onStart:
+              - echo "Start"
+              - printenv
 
       # Install Dynatrace agent on the cluster. Use the separate namespace
       - name: install_oneAgent_operator
@@ -120,7 +125,7 @@ pipelines:
             - kubectl apply -f https://github.com/Dynatrace/dynatrace-oneagent-operator/releases/latest/download/kubernetes.yaml
             - kubectl -n dynatrace create secret generic oneagent --from-literal="apiToken=${int_DTEnvInfo_DT_API_TOKEN}" --from-literal="paasToken=${int_DTEnvInfo_DT_PAAS_TOKEN}"
             - curl -o cr.yaml https://raw.githubusercontent.com/Dynatrace/dynatrace-oneagent-operator/master/deploy/cr.yaml
-            - sed -i "s/ENVIRONMENTID/https\:\/\/scu37051.live.dynatrace.com//g" cr.yaml
+            - sed -i "s/ENVIRONMENTID/scu37051/g" cr.yaml
             - echo ${int_DTEnvInfo_DT_URL}
             - cat cr.yaml
             #- sed -i 's/apiUrl:.*/apiUrl:a/b.*'
@@ -136,13 +141,16 @@ pipelines:
         configuration:
           helmVersion: 3
           affinityGroup: helm_install
-          releaseName: simplehelm${run_number}
+          releaseName: busybox${run_number}
           integrations:
             - name: k8sIntegration
           inputResources:
             - name: simplehelmChart_aa
+            - name: simpleDockerImage_aa
           inputSteps:
             - name: install_oneAgent_operator
+          valueFilePaths:
+            - values.yaml
         execution:
           onStart:
             - kubectl config current-context
@@ -161,7 +169,7 @@ pipelines:
           integrations:
             - name: artifactoryIntegration
           inputSteps:
-            - name: deploy_helm
+            - name: simplehelmChart_aa
         execution:
           onStart:
             - echo "Preparing for work..."
@@ -170,7 +178,7 @@ pipelines:
             - echo "Modifying helm chart properties"
             - echo "Set current time as a deployment time"
             - TIME=$(date +%s)
-            - curl --location --request PUT "${int_artifactoryIntegration_url}/api/storage/simplecharts/simplehelm-0.1.0.tgz?properties=deployedOnCluster=${CLUSTER}%7ChelmInstallationName=${RELEASE_NAME}%7CdeploymentTimestamp=${TIME}" --header "Accept:application/json" --header "X-Jfrog-Art-Api:${int_artifactoryIntegration_apikey}"
+            - curl --location --request PUT "${int_artifactoryIntegration_url}/api/storage/simplecharts/busybox-${res_simplehelmChart2_version}.tgz?properties=deployedOnCluster=${CLUSTER}%7ChelmInstallationName=${RELEASE_NAME}%7CdeploymentTimestamp=${TIME}" --header "Accept:application/json" --header "X-Jfrog-Art-Api:${int_artifactoryIntegration_apikey}"
           onSuccess:
             - echo ""
           onFailure:
