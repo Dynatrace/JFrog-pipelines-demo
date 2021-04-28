@@ -10,7 +10,7 @@ resources:
       buildOn:
         commit: true
 
-  - name: simpleDockerImage_aa # change
+  - name: simpleDockerImage_ab # change
     type: Image
     configuration:
       registry: simplehelmDockerIntegration
@@ -82,7 +82,7 @@ pipelines:
             - name: build_image
           outputResources:
             - name: simpleBuildInfo_aa
-            - name: simpleDockerImage_aa
+            - name: simpleDockerImage_ab
 
       - name: helm_build
         type: HelmPublish
@@ -98,10 +98,10 @@ pipelines:
           outputResources:
             - name: simplehelmChart_aa
             - name: simpleHelmChartBuildInfo_aa
-          execution:
-            onStart:
-              - echo "Start"
-              - printenv
+        execution:
+          onStart:
+            - echo "Start"
+            - printenv
 
       # Install Dynatrace agent on the cluster. Use the separate namespace
       - name: install_oneAgent_operator
@@ -146,7 +146,7 @@ pipelines:
             - name: k8sIntegration
           inputResources:
             - name: simplehelmChart_aa
-            - name: simpleDockerImage_aa
+            - name: simpleDockerImage_ab
           inputSteps:
             - name: install_oneAgent_operator
           valueFilePaths:
@@ -169,7 +169,7 @@ pipelines:
           integrations:
             - name: artifactoryIntegration
           inputSteps:
-            - name: simplehelmChart_aa
+            - name: deploy_helm
         execution:
           onStart:
             - echo "Preparing for work..."
