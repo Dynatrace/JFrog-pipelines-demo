@@ -87,8 +87,8 @@ pipelines:
       - name: helm_build
         type: HelmPublish
         configuration:
-          #chartPath: pipeline/dynatrace/simplehelm/
-          chartPath: pipeline/dynatrace/mychart/
+          chartPath: pipeline/dynatrace/simplehelm/
+          #chartPath: pipeline/dynatrace/mychart/
           affinityGroup: helm_install
           inputSteps:
             - name: push_image
