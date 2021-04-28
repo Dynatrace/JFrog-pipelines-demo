@@ -130,7 +130,7 @@ pipelines:
             - cat cr.yaml
             #- sed -i 's/apiUrl:.*/apiUrl:a/b.*'
             ## configure cr.yaml file when we have all the data needed
-            #- kubectl apply -f cr.yaml
+            - kubectl apply -f cr.yaml
           onSuccess:
             - echo "Dynatrace OneAgent has beed successfully installed"
           onFailure:
