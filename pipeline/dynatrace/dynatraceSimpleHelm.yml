@@ -141,7 +141,7 @@ pipelines:
         configuration:
           helmVersion: 3
           affinityGroup: helm_install
-          releaseName: busybox
+          releaseName: busybox${run_number}
           integrations:
             - name: k8sIntegration
           inputResources:
@@ -169,7 +169,7 @@ pipelines:
           integrations:
             - name: artifactoryIntegration
           inputSteps:
-            - name: deploy_helm
+            - name: simplehelmChart_aa
         execution:
           onStart:
             - echo "Preparing for work..."
