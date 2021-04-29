@@ -168,8 +168,10 @@ pipelines:
           affinityGroup: helm_install
           integrations:
             - name: artifactoryIntegration
-          inputSteps:
+          inputResources:
             - name: simplehelmChart_aa
+          inputSteps:
+            - name: deploy_helm
         execution:
           onStart:
             - echo "Preparing for work..."
