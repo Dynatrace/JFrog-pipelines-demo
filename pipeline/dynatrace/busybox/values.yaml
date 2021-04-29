@@ -5,9 +5,9 @@
 replicaCount: 1
 
 image:
-  repository: ${res_simpleDockerImage_ab_imageName}/${run_number}
+  repository: nginx
   #tag: ${res_simpleDockerImage_imageTag}
-  tag: latest
+  tag: stable
 #  repository: nginx
 #  tag: stable
   pullPolicy: IfNotPresent
