@@ -185,3 +185,26 @@ pipelines:
             - echo ""
           onFailure:
             - echo "Failure"
+
+      - name: Dynatrace_deployment_event
+        type: Bash
+        configuration:
+          affinityGroup: helm_install
+          integrations:
+            - name: artifactoryIntegration
+          inputResources:
+            - name: simplehelmChart_aa
+          inputSteps:
+            - name: modify_properties
+        execution:
+          onStart:
+            - echo "Preparing for work..."
+          onExecute:
+            - printenv
+            #- curl -X POST "https\://scu37051.live.dynatrace.com/api/v1/events" --header "accept: application/json"
+            - curl -X POST "https://scu37051.live.dynatrace.com/api/v1/events" -H "accept: application/json" -H "Authorization: Api-Token ${int_DTEnvInfo_DT_API_TOKEN}" -H "Content-Type: application/json" -d "{\"eventType\":\"CUSTOM_DEPLOYMENT\",\"attachRules\":{\"tagRule\":{\"meTypes\":\"SERVICE\",\"tags\":[{\"context\":\"CONTEXTLESS\",\"key\":\"JFrog\",\"value\":\"busybox\"}]}},\"deploymentName\":\"Test1\",\"deploymentVersion\":\"Test2\",\"deploymentProject\":\"Test3\",\"ciBackLink\":\"Test4\",\"source\":\"GitLab\",\"customProperties\":{\"CI_JOB_URL\":\"Test5\",\"CI_JOB_ID\":\"Test6\",\"CI_PROJECT_ID\":\"Test7\",\"Commit\":\"Test8\"}}"
+            #- curl --location --request PUT "${int_artifactoryIntegration_url}/api/storage/simplecharts/busybox-${res_simplehelmChart2_version}.tgz?properties=deployedOnCluster=${CLUSTER}%7ChelmInstallationName=${RELEASE_NAME}%7CdeploymentTimestamp=${TIME}" --header "Accept:application/json" --header "X-Jfrog-Art-Api:${int_artifactoryIntegration_apikey}"
+          onSuccess:
+            - echo ""
+          onFailure:
+            - echo "Failure"  
