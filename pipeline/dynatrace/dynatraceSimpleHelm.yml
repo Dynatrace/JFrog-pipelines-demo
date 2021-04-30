@@ -206,6 +206,8 @@ pipelines:
             - echo $JSONOutput
             - ChartVersion=$(echo $JSONOutput | jq '.properties."chart.version"[0]')
             - HelmInstallationName=$(eecho $JSONOutput | jq '.properties.helmInstallationName[0]')
+            - echo $ChartVersion
+            - echo $HelmInstallationName
             #- >-
              #curl 
             #- buildNumber="$(${JSONOutput}| jq)"
