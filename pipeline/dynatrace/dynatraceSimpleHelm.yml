@@ -208,6 +208,10 @@ pipelines:
             - HelmInstallationName=$(echo $JSONOutput | jq '.properties.helmInstallationName[0]')
             - echo $ChartVersion
             - echo $HelmInstallationName
+            - echo $run_number
+            - echo $build_image_dockerImageName
+            - echo $int_artifactoryIntegration_url
+            - echo $res_simplehelmChart_aa_version
             #- >-
              #curl 
             #- buildNumber="$(${JSONOutput}| jq)"
