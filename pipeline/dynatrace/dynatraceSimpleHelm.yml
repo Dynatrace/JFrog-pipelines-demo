@@ -205,7 +205,7 @@ pipelines:
             - JSONOutput=$(curl --location --request GET "${int_artifactoryIntegration_url}/api/storage/simplecharts/busybox-${res_simplehelmChart_aa_version}.tgz?properties=helmInstallationName,chart.version" --header "Accept:application/json" --header "X-Jfrog-Art-Api:${int_artifactoryIntegration_apikey}" | jq .)
             - echo $JSONOutput
             - ChartVersion=$(echo $JSONOutput | jq '.properties."chart.version"[0]')
-            - HelmInstallationName=$(eecho $JSONOutput | jq '.properties.helmInstallationName[0]')
+            - HelmInstallationName=$(echo $JSONOutput | jq '.properties.helmInstallationName[0]')
             - echo $ChartVersion
             - echo $HelmInstallationName
             #- >-
