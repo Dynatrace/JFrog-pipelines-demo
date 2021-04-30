@@ -180,7 +180,7 @@ pipelines:
             - echo "Modifying helm chart properties"
             - echo "Set current time as a deployment time"
             - TIME=$(date +%s)
-            - curl --location --request PUT "${int_artifactoryIntegration_url}/api/storage/simplecharts/busybox-${res_simplehelmChart2_version}.tgz?properties=deployedOnCluster=${CLUSTER}%7ChelmInstallationName=${RELEASE_NAME}%7CdeploymentTimestamp=${TIME}" --header "Accept:application/json" --header "X-Jfrog-Art-Api:${int_artifactoryIntegration_apikey}"
+            - curl --location --request PUT "${int_artifactoryIntegration_url}/api/storage/simplecharts/busybox-${res_simplehelmChart_aa_version}.tgz?properties=deployedOnCluster=${CLUSTER}%7ChelmInstallationName=${RELEASE_NAME}%7CdeploymentTimestamp=${TIME}" --header "Accept:application/json" --header "X-Jfrog-Art-Api:${int_artifactoryIntegration_apikey}"
           onSuccess:
             - echo ""
           onFailure:
@@ -202,7 +202,7 @@ pipelines:
             - echo "Preparing for work..."
           onExecute:
             - printenv
-            - JSONOutput=$(curl --location --request GET "${int_artifactoryIntegration_url}/api/storage/simplecharts/busybox-${res_simplehelmChart2_version}.tgz?properties=helmInstallationName,chart.version" --header "Accept:application/json" --header "X-Jfrog-Art-Api:${int_artifactoryIntegration_apikey}" | jq .)
+            - JSONOutput=$(curl --location --request GET "${int_artifactoryIntegration_url}/api/storage/simplecharts/busybox-${res_simplehelmChart_aa_version}.tgz?properties=helmInstallationName,chart.version" --header "Accept:application/json" --header "X-Jfrog-Art-Api:${int_artifactoryIntegration_apikey}" | jq .)
             - echo $JSONOutput
             #- >-
              #curl 
