@@ -235,6 +235,8 @@ pipelines:
           affinityGroup: helm_install
           integrations:
             - name: KeptnIntegration
+          inputSteps:
+            - name: Dynatrace_deployment_event
         execution:
           onStart:
             - echo "Initializing the Keptn context ..."
