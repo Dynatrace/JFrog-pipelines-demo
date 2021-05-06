@@ -2,9 +2,9 @@ resources:
   - name: helmGitHub
     type: GitRepo
     configuration:
-      gitProvider: DT_PIPELINE_INT
+      gitProvider: DT_PIPELINE
       # replace with your pipelines repository
-      path: Dynatrace-Asad-Ali/pipelines-demo # if path is modified, change the name as well, per Pipelines doc
+      path: JFrogDynatrace/pipelines-demo # if path is modified, change the name as well, per Pipelines doc
       branches:
         include: main
       buildOn:
@@ -35,8 +35,8 @@ resources:
   - name: simplehelmRepoChart
     type: GitRepo
     configuration:
-      gitProvider: DT_PIPELINE_INT
-      path: Dynatrace-Asad-Ali/pipelines-demo # replace with your repo
+      gitProvider: DT_PIPELINE
+      path: JFrogDynatrace/pipelines-demo # replace with your repo
       branches:
         include: main
       buildOn:
@@ -228,85 +228,25 @@ pipelines:
             - echo ""
           onFailure:
             - echo "Failure"
+
       - name: Keptn init project
-          type: Bash
-          configuration:
-            affinityGroup: helm_install
-            integrations:
-              - name: KeptnIntegration
-            inputSteps:
-              - name: Dynatrace_deployment_event
-            inputRessources:
-              - name: helmGitHub
-          execution:
-            onStart:
-              - echo "Initializing the Keptn context ..."
-            onExecute:
-              - printenv
-              - JSONOutput=$(curl --location --request GET "${int_artifactoryIntegration_url}/api/storage/simplecharts/busybox-${res_simplehelmChart_version}.tgz?properties=helmInstallationName,chart.version,deployedOnCluster,vcs.url" --header "Accept:application/json" --header "X-Jfrog-Art-Api:${int_artifactoryIntegration_apikey}" | jq .)
-              - echo $JSONOutput
-              - ChartVersion=$(echo $JSONOutput | jq '.properties."chart.version"[0]')
-              - HelmInstallationName=$(echo $JSONOutput | jq '.properties.helmInstallationName[0]')
-              - VCS_URL=$(echo $JSONOutput | jq '.properties."vcs.url"[0]')
-              - DeployedOnCluster=$(echo $JSONOutput | jq '.properties.deployedOnCluster[0]')
-              - echo $ChartVersion
-              - echo $HelmInstallationName
-              - echo $run_number
-              - echo $build_image_dockerImageName
-              - echo $int_artifactoryIntegration_url
-              - echo $res_simplehelmChart_version
-              - echo curl -H 'Content-Type:application/json' --location --request POST "${int_dynatraceIntegration_DT_URL}/api/v1/events"  -H 'Accept:application/json' -HAuthorization:"Api-Token ${int_dynatraceIntegration_API_TOKEN}" -d "{\"eventType\":\"CUSTOM_DEPLOYMENT\",\"attachRules\":{\"tagRule\":{\"meTypes\":\"SERVICE\",\"tags\":[{\"context\":\"CONTEXTLESS\",\"key\":\"JFrog\",\"value\":\"busybox\"}]}},\"deploymentName\":\"RuntimeDeployment\",\"deploymentVersion\":\"${res_simplehelmChart_version}\",\"deploymentProject\":\"BusyBox-nginx\",\"source\":\"${int_artifactoryIntegration_url}\",\"customProperties\":{\"ChartVersion\":${ChartVersion},\"JFrogArtifactoryUrl\":\"${int_artifactoryIntegration_url}\",\"HelmInstallationName\":${HelmInstallationName},\"RunNumber\":\"${run_number}\",\"DeployedOnCluster\":${DeployedOnCluster},\"VCS_URL\":${VCS_URL},\"DockerImageName\":\"${build_image_dockerImageName}\"}}"
-
-              #- >-
-              #curl
-              #- buildNumber="$(${JSONOutput}| jq)"
-              #- CLUSTER="$(curl --request GET)"
-              - curl -H 'Content-Type:application/json' --location --request POST "${int_dynatraceIntegration_DT_URL}/api/v1/events"  -H 'Accept:application/json' -HAuthorization:"Api-Token ${int_dynatraceIntegration_API_TOKEN}" -d "{\"eventType\":\"CUSTOM_DEPLOYMENT\",\"attachRules\":{\"tagRule\":{\"meTypes\":\"SERVICE\",\"tags\":[{\"context\":\"CONTEXTLESS\",\"key\":\"JFrog\",\"value\":\"busybox\"}]}},\"deploymentName\":\"RuntimeDeployment\",\"deploymentVersion\":\"${res_simplehelmChart_version}\",\"deploymentProject\":\"BusyBox-nginx\",\"source\":\"${int_artifactoryIntegration_url}\",\"customProperties\":{\"ChartVersion\":${ChartVersion},\"JFrogArtifactoryUrl\":\"${int_artifactoryIntegration_url}\",\"HelmInstallationName\":${HelmInstallationName},\"RunNumber\":\"${run_number}\",\"DeployedOnCluster\":${DeployedOnCluster},\"VCS_URL\":${VCS_URL},\"DockerImageName\":\"${build_image_dockerImageName}\"}}"
-              #-H "content-type: "
-              #- curl -X POST "https\://scu37051.live.dynatrace.com/api/v1/events" --header "accept: application/json"
-              #- curl --location --request PUT "${int_artifactoryIntegration_url}/api/storage/simplecharts/busybox-${res_simplehelmChart2_version}.tgz?properties=deployedOnCluster=${CLUSTER}%7ChelmInstallationName=${RELEASE_NAME}%7CdeploymentTimestamp=${TIME}" --header "Accept:application/json" --header "X-Jfrog-Art-Api:${int_artifactoryIntegration_apikey}"
-            onSuccess:
-              - echo ""
-            onFailure:
-              - echo "Failure"  - name: Dynatrace_deployment_event
-                  type: Bash
-                  configuration:
-                    affinityGroup: helm_install
-                    integrations:
-                      - name: artifactoryIntegration
-                      - name: dynatraceIntegration
-                    inputResources:
-                      - name: simplehelmChart
-                    inputSteps:
-                      - name: modify_properties
-                  execution:
-                    onStart:
-                      - echo "Preparing for work..."
-                    onExecute:
-                      - printenv
-                      - JSONOutput=$(curl --location --request GET "${int_artifactoryIntegration_url}/api/storage/simplecharts/busybox-${res_simplehelmChart_version}.tgz?properties=helmInstallationName,chart.version,deployedOnCluster,vcs.url" --header "Accept:application/json" --header "X-Jfrog-Art-Api:${int_artifactoryIntegration_apikey}" | jq .)
-                      - echo $JSONOutput
-                      - ChartVersion=$(echo $JSONOutput | jq '.properties."chart.version"[0]')
-                      - HelmInstallationName=$(echo $JSONOutput | jq '.properties.helmInstallationName[0]')
-                      - VCS_URL=$(echo $JSONOutput | jq '.properties."vcs.url"[0]')
-                      - DeployedOnCluster=$(echo $JSONOutput | jq '.properties.deployedOnCluster[0]')
-                      - echo $ChartVersion
-                      - echo $HelmInstallationName
-                      - echo $run_number
-                      - echo $build_image_dockerImageName
-                      - echo $int_artifactoryIntegration_url
-                      - echo $res_simplehelmChart_version
-                      - echo curl -H 'Content-Type:application/json' --location --request POST "${int_dynatraceIntegration_DT_URL}/api/v1/events"  -H 'Accept:application/json' -HAuthorization:"Api-Token ${int_dynatraceIntegration_API_TOKEN}" -d "{\"eventType\":\"CUSTOM_DEPLOYMENT\",\"attachRules\":{\"tagRule\":{\"meTypes\":\"SERVICE\",\"tags\":[{\"context\":\"CONTEXTLESS\",\"key\":\"JFrog\",\"value\":\"busybox\"}]}},\"deploymentName\":\"RuntimeDeployment\",\"deploymentVersion\":\"${res_simplehelmChart_version}\",\"deploymentProject\":\"BusyBox-nginx\",\"source\":\"${int_artifactoryIntegration_url}\",\"customProperties\":{\"ChartVersion\":${ChartVersion},\"JFrogArtifactoryUrl\":\"${int_artifactoryIntegration_url}\",\"HelmInstallationName\":${HelmInstallationName},\"RunNumber\":\"${run_number}\",\"DeployedOnCluster\":${DeployedOnCluster},\"VCS_URL\":${VCS_URL},\"DockerImageName\":\"${build_image_dockerImageName}\"}}"
-
-                      #- >-
-                      #curl
-                      #- buildNumber="$(${JSONOutput}| jq)"
-                      #- CLUSTER="$(curl --request GET)"
-                      - curl -H 'Content-Type:application/json' --location --request POST "${int_dynatraceIntegration_DT_URL}/api/v1/events"  -H 'Accept:application/json' -HAuthorization:"Api-Token ${int_dynatraceIntegration_API_TOKEN}" -d "{\"eventType\":\"CUSTOM_DEPLOYMENT\",\"attachRules\":{\"tagRule\":{\"meTypes\":\"SERVICE\",\"tags\":[{\"context\":\"CONTEXTLESS\",\"key\":\"JFrog\",\"value\":\"busybox\"}]}},\"deploymentName\":\"RuntimeDeployment\",\"deploymentVersion\":\"${res_simplehelmChart_version}\",\"deploymentProject\":\"BusyBox-nginx\",\"source\":\"${int_artifactoryIntegration_url}\",\"customProperties\":{\"ChartVersion\":${ChartVersion},\"JFrogArtifactoryUrl\":\"${int_artifactoryIntegration_url}\",\"HelmInstallationName\":${HelmInstallationName},\"RunNumber\":\"${run_number}\",\"DeployedOnCluster\":${DeployedOnCluster},\"VCS_URL\":${VCS_URL},\"DockerImageName\":\"${build_image_dockerImageName}\"}}"
-                      #-H "content-type: "
-                      #- curl -X POST "https\://scu37051.live.dynatrace.com/api/v1/events" --header "accept: application/json"
-                      #- curl --location --request PUT "${int_artifactoryIntegration_url}/api/storage/simplecharts/busybox-${res_simplehelmChart2_version}.tgz?properties=deployedOnCluster=${CLUSTER}%7ChelmInstallationName=${RELEASE_NAME}%7CdeploymentTimestamp=${TIME}" --header "Accept:application/json" --header "X-Jfrog-Art-Api:${int_artifactoryIntegration_apikey}"
-                    onSuccess:
-                      - echo ""
-                    onFailure:
-                      - echo "Failure"
+        type: Bash
+        configuration:
+          affinityGroup: helm_install
+          integrations:
+            - name: KeptnIntegration
+          inputSteps:
+            - name: Dynatrace_deployment_event
+          inputRessources:
+            - name: helmGitHub
+        execution:
+          onStart:
+            - echo "Initializing the Keptn context ..."
+          onExecute: |
+            printenv
+            JSONOutput=$(curl --location --request GET "${int_KeptnIntegration_API_URL}//controlPlane/v1/project/${int_KeptnIntegration_PROJECT_NAME}" --header "Accept:application/json" --header "x-token:${int_KeptnIntegration_API_TOKEN}" | jq .)
+            Project=$(echo $JSONOutput| jq -r '.projectName')
+            if  [ !  "$Project" ]; then
+               # requires to create the project in Keptn
+               JSONCreation=$(curl --location --request POST "${int_KeptnIntegration_API_URL}//controlPlane/v1/project/${int_KeptnIntegration_PROJECT_NAME}" --header "Accept:application/json" --header "x-token:${int_KeptnIntegration_API_TOKEN}" | jq .)
+            fi
