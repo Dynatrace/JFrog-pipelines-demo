@@ -141,7 +141,7 @@ pipelines:
         configuration:
           helmVersion: 3
           affinityGroup: helm_install
-            releaseName: "busyboxPipeline${run_number}"
+          releaseName: busyboxPipeline${run_number}
           integrations:
             - name: k8sIntegration
           inputResources:
