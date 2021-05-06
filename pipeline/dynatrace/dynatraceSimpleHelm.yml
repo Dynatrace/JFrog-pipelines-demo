@@ -1,8 +1,8 @@
 resources:
-  - name: helmGitHub_aa
+  - name: helmGitHub
     type: GitRepo
     configuration:
-      gitProvider: DT_AA_PIPELINE_INT
+      gitProvider: DT_PIPELINE_INT
       # replace with your pipelines repository
       path: Dynatrace-Asad-Ali/pipelines-demo # if path is modified, change the name as well, per Pipelines doc
       branches:
@@ -10,7 +10,7 @@ resources:
       buildOn:
         commit: true
 
-  - name: simpleDockerImage_ab # change
+  - name: simpleDockerImage # change
     type: Image
     configuration:
       registry: simplehelmDockerIntegration
@@ -18,31 +18,31 @@ resources:
       imageName: dynatracejtpp.jfrog.io/art-docker-dynatrace/busybox
       imageTag: '${run_number}'
 
-  - name: simpleBuildInfo_aa
+  - name: simpleBuildInfo
     type: BuildInfo
     configuration:
       sourceArtifactory: artifactoryIntegration
       buildName: SampleApp
       buildNumber: 1
 
-  - name: simpleHelmChartBuildInfo_aa
+  - name: simpleHelmChartBuildInfo
     type: BuildInfo
     configuration:
       sourceArtifactory: artifactoryIntegration
       buildName: SampleApp
       buildNumber: '0.1.${run_number}'
 
-  - name: simplehelmRepoChart_aa
+  - name: simplehelmRepoChart
     type: GitRepo
     configuration:
-      gitProvider: DT_AA_PIPELINE_INT
+      gitProvider: DT_PIPELINE_INT
       path: Dynatrace-Asad-Ali/pipelines-demo # replace with your repo
       branches:
         include: main
       buildOn:
         commit: true
 
-  - name: simplehelmChart_aa
+  - name: simplehelmChart
     type: HelmChart
     configuration:
       sourceArtifactory: artifactoryIntegration
@@ -51,7 +51,7 @@ resources:
       version: 0.0.0
 
 pipelines:
-  - name: dynatrace_demo_helm_aa
+  - name: dynatrace_demo_helm
     configuration:
       environmentVariables:
         readOnly:
@@ -64,7 +64,7 @@ pipelines:
           integrations:
             - name: artifactoryIntegration
           inputResources:
-            - name: helmGitHub_aa
+            - name: helmGitHub
           dockerFileLocation: pipeline/dynatrace/
           dockerFileName: Dockerfile
           dockerImageName: dynatracejtpp.jfrog.io/art-docker-dynatrace/busybox
@@ -81,8 +81,8 @@ pipelines:
           inputSteps:
             - name: build_image
           outputResources:
-            - name: simpleBuildInfo_aa
-            - name: simpleDockerImage_ab
+            - name: simpleBuildInfo
+            - name: simpleDockerImage
 
       - name: helm_build
         type: HelmPublish
@@ -93,11 +93,11 @@ pipelines:
           inputSteps:
             - name: push_image
           inputResources:
-            - name: simplehelmRepoChart_aa
+            - name: simplehelmRepoChart
               trigger: false
           outputResources:
-            - name: simplehelmChart_aa
-            - name: simpleHelmChartBuildInfo_aa
+            - name: simplehelmChart
+            - name: simpleHelmChartBuildInfo
         execution:
           onStart:
             - echo "Start"
@@ -110,7 +110,7 @@ pipelines:
           affinityGroup: helm_install
           integrations:
             - name: k8sIntegration
-            - name: DTEnvInfo
+            - name: dynatraceIntegration
           inputSteps:
             - name: helm_build
         execution:
@@ -123,10 +123,10 @@ pipelines:
             - kubectl get pods
             - kubectl create namespace dynatrace
             - kubectl apply -f https://github.com/Dynatrace/dynatrace-oneagent-operator/releases/latest/download/kubernetes.yaml
-            - kubectl -n dynatrace create secret generic oneagent --from-literal="apiToken=${int_DTEnvInfo_DT_API_TOKEN}" --from-literal="paasToken=${int_DTEnvInfo_DT_PAAS_TOKEN}"
+            - kubectl -n dynatrace create secret generic oneagent --from-literal="apiToken=${int_dynatraceIntegration_API_TOKEN}" --from-literal="paasToken=${int_DTEnvInfo_PAAS_TOKEN}"
             - curl -o cr.yaml https://raw.githubusercontent.com/Dynatrace/dynatrace-oneagent-operator/master/deploy/cr.yaml
-            - sed -i "s/ENVIRONMENTID/scu37051/g" cr.yaml
-            - echo ${int_DTEnvInfo_DT_URL}
+            - sed -i "s/ENVIRONMENTID/${int_dynatraceIntegration_${int_dynatraceIntegration_API_TOKEN}}/g" cr.yaml
+            - echo ${int_dynatraceIntegration_DT_URL}
             - cat cr.yaml
             #- sed -i 's/apiUrl:.*/apiUrl:a/b.*'
             ## configure cr.yaml file when we have all the data needed
@@ -145,8 +145,8 @@ pipelines:
           integrations:
             - name: k8sIntegration
           inputResources:
-            - name: simplehelmChart_aa
-            - name: simpleDockerImage_ab
+            - name: simplehelmChart
+            - name: simpleDockerImage
           inputSteps:
             - name: install_oneAgent_operator
           valueFilePaths:
@@ -169,7 +169,7 @@ pipelines:
           integrations:
             - name: artifactoryIntegration
           inputResources:
-            - name: simplehelmChart_aa
+            - name: simplehelmChart
           inputSteps:
             - name: deploy_helm
         execution:
@@ -180,7 +180,7 @@ pipelines:
             - echo "Modifying helm chart properties"
             - echo "Set current time as a deployment time"
             - TIME=$(date +%s)
-            - curl --location --request PUT "${int_artifactoryIntegration_url}/api/storage/simplecharts/busybox-${res_simplehelmChart_aa_version}.tgz?properties=deployedOnCluster=${CLUSTER}%7ChelmInstallationName=${RELEASE_NAME}%7CdeploymentTimestamp=${TIME}" --header "Accept:application/json" --header "X-Jfrog-Art-Api:${int_artifactoryIntegration_apikey}"
+            - curl --location --request PUT "${int_artifactoryIntegration_url}/api/storage/simplecharts/busybox-${res_simplehelmChart_version}.tgz?properties=deployedOnCluster=${CLUSTER}%7ChelmInstallationName=${RELEASE_NAME}%7CdeploymentTimestamp=${TIME}" --header "Accept:application/json" --header "X-Jfrog-Art-Api:${int_artifactoryIntegration_apikey}"
           onSuccess:
             - echo ""
           onFailure:
@@ -192,9 +192,9 @@ pipelines:
           affinityGroup: helm_install
           integrations:
             - name: artifactoryIntegration
-            - name: DTEnvInfo
+            - name: dynatraceIntegration
           inputResources:
-            - name: simplehelmChart_aa
+            - name: simplehelmChart
           inputSteps:
             - name: modify_properties
         execution:
@@ -202,7 +202,7 @@ pipelines:
             - echo "Preparing for work..."
           onExecute:
             - printenv
-            - JSONOutput=$(curl --location --request GET "${int_artifactoryIntegration_url}/api/storage/simplecharts/busybox-${res_simplehelmChart_aa_version}.tgz?properties=helmInstallationName,chart.version,deployedOnCluster,vcs.url" --header "Accept:application/json" --header "X-Jfrog-Art-Api:${int_artifactoryIntegration_apikey}" | jq .)
+            - JSONOutput=$(curl --location --request GET "${int_artifactoryIntegration_url}/api/storage/simplecharts/busybox-${res_simplehelmChart_version}.tgz?properties=helmInstallationName,chart.version,deployedOnCluster,vcs.url" --header "Accept:application/json" --header "X-Jfrog-Art-Api:${int_artifactoryIntegration_apikey}" | jq .)
             - echo $JSONOutput
             - ChartVersion=$(echo $JSONOutput | jq '.properties."chart.version"[0]')
             - HelmInstallationName=$(echo $JSONOutput | jq '.properties.helmInstallationName[0]')
@@ -213,18 +213,100 @@ pipelines:
             - echo $run_number
             - echo $build_image_dockerImageName
             - echo $int_artifactoryIntegration_url
-            - echo $res_simplehelmChart_aa_version
-            - echo curl -H 'Content-Type:application/json' --location --request POST "https://scu37051.live.dynatrace.com/api/v1/events"  -H 'Accept:application/json' -HAuthorization:"Api-Token ${int_DTEnvInfo_DT_API_TOKEN}" -d "{\"eventType\":\"CUSTOM_DEPLOYMENT\",\"attachRules\":{\"tagRule\":{\"meTypes\":\"SERVICE\",\"tags\":[{\"context\":\"CONTEXTLESS\",\"key\":\"JFrog\",\"value\":\"busybox\"}]}},\"deploymentName\":\"RuntimeDeployment\",\"deploymentVersion\":\"${res_simplehelmChart_aa_version}\",\"deploymentProject\":\"BusyBox-nginx\",\"source\":\"${int_artifactoryIntegration_url}\",\"customProperties\":{\"ChartVersion\":${ChartVersion},\"JFrogArtifactoryUrl\":\"${int_artifactoryIntegration_url}\",\"HelmInstallationName\":${HelmInstallationName},\"RunNumber\":\"${run_number}\",\"DeployedOnCluster\":${DeployedOnCluster},\"VCS_URL\":${VCS_URL},\"DockerImageName\":\"${build_image_dockerImageName}\"}}"
+            - echo $res_simplehelmChart_version
+            - echo curl -H 'Content-Type:application/json' --location --request POST "${int_dynatraceIntegration_DT_URL}/api/v1/events"  -H 'Accept:application/json' -HAuthorization:"Api-Token ${int_dynatraceIntegration_API_TOKEN}" -d "{\"eventType\":\"CUSTOM_DEPLOYMENT\",\"attachRules\":{\"tagRule\":{\"meTypes\":\"SERVICE\",\"tags\":[{\"context\":\"CONTEXTLESS\",\"key\":\"JFrog\",\"value\":\"busybox\"}]}},\"deploymentName\":\"RuntimeDeployment\",\"deploymentVersion\":\"${res_simplehelmChart_version}\",\"deploymentProject\":\"BusyBox-nginx\",\"source\":\"${int_artifactoryIntegration_url}\",\"customProperties\":{\"ChartVersion\":${ChartVersion},\"JFrogArtifactoryUrl\":\"${int_artifactoryIntegration_url}\",\"HelmInstallationName\":${HelmInstallationName},\"RunNumber\":\"${run_number}\",\"DeployedOnCluster\":${DeployedOnCluster},\"VCS_URL\":${VCS_URL},\"DockerImageName\":\"${build_image_dockerImageName}\"}}"
 
             #- >-
              #curl 
             #- buildNumber="$(${JSONOutput}| jq)"
             #- CLUSTER="$(curl --request GET)"
-            - curl -H 'Content-Type:application/json' --location --request POST "https://scu37051.live.dynatrace.com/api/v1/events"  -H 'Accept:application/json' -HAuthorization:"Api-Token ${int_DTEnvInfo_DT_API_TOKEN}" -d "{\"eventType\":\"CUSTOM_DEPLOYMENT\",\"attachRules\":{\"tagRule\":{\"meTypes\":\"SERVICE\",\"tags\":[{\"context\":\"CONTEXTLESS\",\"key\":\"JFrog\",\"value\":\"busybox\"}]}},\"deploymentName\":\"RuntimeDeployment\",\"deploymentVersion\":\"${res_simplehelmChart_aa_version}\",\"deploymentProject\":\"BusyBox-nginx\",\"source\":\"${int_artifactoryIntegration_url}\",\"customProperties\":{\"ChartVersion\":${ChartVersion},\"JFrogArtifactoryUrl\":\"${int_artifactoryIntegration_url}\",\"HelmInstallationName\":${HelmInstallationName},\"RunNumber\":\"${run_number}\",\"DeployedOnCluster\":${DeployedOnCluster},\"VCS_URL\":${VCS_URL},\"DockerImageName\":\"${build_image_dockerImageName}\"}}"
+            - curl -H 'Content-Type:application/json' --location --request POST "${int_dynatraceIntegration_DT_URL}/api/v1/events"  -H 'Accept:application/json' -HAuthorization:"Api-Token ${int_dynatraceIntegration_API_TOKEN}" -d "{\"eventType\":\"CUSTOM_DEPLOYMENT\",\"attachRules\":{\"tagRule\":{\"meTypes\":\"SERVICE\",\"tags\":[{\"context\":\"CONTEXTLESS\",\"key\":\"JFrog\",\"value\":\"busybox\"}]}},\"deploymentName\":\"RuntimeDeployment\",\"deploymentVersion\":\"${res_simplehelmChart_version}\",\"deploymentProject\":\"BusyBox-nginx\",\"source\":\"${int_artifactoryIntegration_url}\",\"customProperties\":{\"ChartVersion\":${ChartVersion},\"JFrogArtifactoryUrl\":\"${int_artifactoryIntegration_url}\",\"HelmInstallationName\":${HelmInstallationName},\"RunNumber\":\"${run_number}\",\"DeployedOnCluster\":${DeployedOnCluster},\"VCS_URL\":${VCS_URL},\"DockerImageName\":\"${build_image_dockerImageName}\"}}"
             #-H "content-type: "
             #- curl -X POST "https\://scu37051.live.dynatrace.com/api/v1/events" --header "accept: application/json"
             #- curl --location --request PUT "${int_artifactoryIntegration_url}/api/storage/simplecharts/busybox-${res_simplehelmChart2_version}.tgz?properties=deployedOnCluster=${CLUSTER}%7ChelmInstallationName=${RELEASE_NAME}%7CdeploymentTimestamp=${TIME}" --header "Accept:application/json" --header "X-Jfrog-Art-Api:${int_artifactoryIntegration_apikey}"
           onSuccess:
             - echo ""
           onFailure:
-            - echo "Failure"  
+            - echo "Failure"
+      - name: Keptn init project
+          type: Bash
+          configuration:
+            affinityGroup: helm_install
+            integrations:
+              - name: KeptnIntegration
+            inputSteps:
+              - name: Dynatrace_deployment_event
+            inputRessources:
+              - name: helmGitHub
+          execution:
+            onStart:
+              - echo "Initializing the Keptn context ..."
+            onExecute:
+              - printenv
+              - JSONOutput=$(curl --location --request GET "${int_artifactoryIntegration_url}/api/storage/simplecharts/busybox-${res_simplehelmChart_version}.tgz?properties=helmInstallationName,chart.version,deployedOnCluster,vcs.url" --header "Accept:application/json" --header "X-Jfrog-Art-Api:${int_artifactoryIntegration_apikey}" | jq .)
+              - echo $JSONOutput
+              - ChartVersion=$(echo $JSONOutput | jq '.properties."chart.version"[0]')
+              - HelmInstallationName=$(echo $JSONOutput | jq '.properties.helmInstallationName[0]')
+              - VCS_URL=$(echo $JSONOutput | jq '.properties."vcs.url"[0]')
+              - DeployedOnCluster=$(echo $JSONOutput | jq '.properties.deployedOnCluster[0]')
+              - echo $ChartVersion
+              - echo $HelmInstallationName
+              - echo $run_number
+              - echo $build_image_dockerImageName
+              - echo $int_artifactoryIntegration_url
+              - echo $res_simplehelmChart_version
+              - echo curl -H 'Content-Type:application/json' --location --request POST "${int_dynatraceIntegration_DT_URL}/api/v1/events"  -H 'Accept:application/json' -HAuthorization:"Api-Token ${int_dynatraceIntegration_API_TOKEN}" -d "{\"eventType\":\"CUSTOM_DEPLOYMENT\",\"attachRules\":{\"tagRule\":{\"meTypes\":\"SERVICE\",\"tags\":[{\"context\":\"CONTEXTLESS\",\"key\":\"JFrog\",\"value\":\"busybox\"}]}},\"deploymentName\":\"RuntimeDeployment\",\"deploymentVersion\":\"${res_simplehelmChart_version}\",\"deploymentProject\":\"BusyBox-nginx\",\"source\":\"${int_artifactoryIntegration_url}\",\"customProperties\":{\"ChartVersion\":${ChartVersion},\"JFrogArtifactoryUrl\":\"${int_artifactoryIntegration_url}\",\"HelmInstallationName\":${HelmInstallationName},\"RunNumber\":\"${run_number}\",\"DeployedOnCluster\":${DeployedOnCluster},\"VCS_URL\":${VCS_URL},\"DockerImageName\":\"${build_image_dockerImageName}\"}}"
+
+              #- >-
+              #curl
+              #- buildNumber="$(${JSONOutput}| jq)"
+              #- CLUSTER="$(curl --request GET)"
+              - curl -H 'Content-Type:application/json' --location --request POST "${int_dynatraceIntegration_DT_URL}/api/v1/events"  -H 'Accept:application/json' -HAuthorization:"Api-Token ${int_dynatraceIntegration_API_TOKEN}" -d "{\"eventType\":\"CUSTOM_DEPLOYMENT\",\"attachRules\":{\"tagRule\":{\"meTypes\":\"SERVICE\",\"tags\":[{\"context\":\"CONTEXTLESS\",\"key\":\"JFrog\",\"value\":\"busybox\"}]}},\"deploymentName\":\"RuntimeDeployment\",\"deploymentVersion\":\"${res_simplehelmChart_version}\",\"deploymentProject\":\"BusyBox-nginx\",\"source\":\"${int_artifactoryIntegration_url}\",\"customProperties\":{\"ChartVersion\":${ChartVersion},\"JFrogArtifactoryUrl\":\"${int_artifactoryIntegration_url}\",\"HelmInstallationName\":${HelmInstallationName},\"RunNumber\":\"${run_number}\",\"DeployedOnCluster\":${DeployedOnCluster},\"VCS_URL\":${VCS_URL},\"DockerImageName\":\"${build_image_dockerImageName}\"}}"
+              #-H "content-type: "
+              #- curl -X POST "https\://scu37051.live.dynatrace.com/api/v1/events" --header "accept: application/json"
+              #- curl --location --request PUT "${int_artifactoryIntegration_url}/api/storage/simplecharts/busybox-${res_simplehelmChart2_version}.tgz?properties=deployedOnCluster=${CLUSTER}%7ChelmInstallationName=${RELEASE_NAME}%7CdeploymentTimestamp=${TIME}" --header "Accept:application/json" --header "X-Jfrog-Art-Api:${int_artifactoryIntegration_apikey}"
+            onSuccess:
+              - echo ""
+            onFailure:
+              - echo "Failure"  - name: Dynatrace_deployment_event
+                  type: Bash
+                  configuration:
+                    affinityGroup: helm_install
+                    integrations:
+                      - name: artifactoryIntegration
+                      - name: dynatraceIntegration
+                    inputResources:
+                      - name: simplehelmChart
+                    inputSteps:
+                      - name: modify_properties
+                  execution:
+                    onStart:
+                      - echo "Preparing for work..."
+                    onExecute:
+                      - printenv
+                      - JSONOutput=$(curl --location --request GET "${int_artifactoryIntegration_url}/api/storage/simplecharts/busybox-${res_simplehelmChart_version}.tgz?properties=helmInstallationName,chart.version,deployedOnCluster,vcs.url" --header "Accept:application/json" --header "X-Jfrog-Art-Api:${int_artifactoryIntegration_apikey}" | jq .)
+                      - echo $JSONOutput
+                      - ChartVersion=$(echo $JSONOutput | jq '.properties."chart.version"[0]')
+                      - HelmInstallationName=$(echo $JSONOutput | jq '.properties.helmInstallationName[0]')
+                      - VCS_URL=$(echo $JSONOutput | jq '.properties."vcs.url"[0]')
+                      - DeployedOnCluster=$(echo $JSONOutput | jq '.properties.deployedOnCluster[0]')
+                      - echo $ChartVersion
+                      - echo $HelmInstallationName
+                      - echo $run_number
+                      - echo $build_image_dockerImageName
+                      - echo $int_artifactoryIntegration_url
+                      - echo $res_simplehelmChart_version
+                      - echo curl -H 'Content-Type:application/json' --location --request POST "${int_dynatraceIntegration_DT_URL}/api/v1/events"  -H 'Accept:application/json' -HAuthorization:"Api-Token ${int_dynatraceIntegration_API_TOKEN}" -d "{\"eventType\":\"CUSTOM_DEPLOYMENT\",\"attachRules\":{\"tagRule\":{\"meTypes\":\"SERVICE\",\"tags\":[{\"context\":\"CONTEXTLESS\",\"key\":\"JFrog\",\"value\":\"busybox\"}]}},\"deploymentName\":\"RuntimeDeployment\",\"deploymentVersion\":\"${res_simplehelmChart_version}\",\"deploymentProject\":\"BusyBox-nginx\",\"source\":\"${int_artifactoryIntegration_url}\",\"customProperties\":{\"ChartVersion\":${ChartVersion},\"JFrogArtifactoryUrl\":\"${int_artifactoryIntegration_url}\",\"HelmInstallationName\":${HelmInstallationName},\"RunNumber\":\"${run_number}\",\"DeployedOnCluster\":${DeployedOnCluster},\"VCS_URL\":${VCS_URL},\"DockerImageName\":\"${build_image_dockerImageName}\"}}"
+
+                      #- >-
+                      #curl
+                      #- buildNumber="$(${JSONOutput}| jq)"
+                      #- CLUSTER="$(curl --request GET)"
+                      - curl -H 'Content-Type:application/json' --location --request POST "${int_dynatraceIntegration_DT_URL}/api/v1/events"  -H 'Accept:application/json' -HAuthorization:"Api-Token ${int_dynatraceIntegration_API_TOKEN}" -d "{\"eventType\":\"CUSTOM_DEPLOYMENT\",\"attachRules\":{\"tagRule\":{\"meTypes\":\"SERVICE\",\"tags\":[{\"context\":\"CONTEXTLESS\",\"key\":\"JFrog\",\"value\":\"busybox\"}]}},\"deploymentName\":\"RuntimeDeployment\",\"deploymentVersion\":\"${res_simplehelmChart_version}\",\"deploymentProject\":\"BusyBox-nginx\",\"source\":\"${int_artifactoryIntegration_url}\",\"customProperties\":{\"ChartVersion\":${ChartVersion},\"JFrogArtifactoryUrl\":\"${int_artifactoryIntegration_url}\",\"HelmInstallationName\":${HelmInstallationName},\"RunNumber\":\"${run_number}\",\"DeployedOnCluster\":${DeployedOnCluster},\"VCS_URL\":${VCS_URL},\"DockerImageName\":\"${build_image_dockerImageName}\"}}"
+                      #-H "content-type: "
+                      #- curl -X POST "https\://scu37051.live.dynatrace.com/api/v1/events" --header "accept: application/json"
+                      #- curl --location --request PUT "${int_artifactoryIntegration_url}/api/storage/simplecharts/busybox-${res_simplehelmChart2_version}.tgz?properties=deployedOnCluster=${CLUSTER}%7ChelmInstallationName=${RELEASE_NAME}%7CdeploymentTimestamp=${TIME}" --header "Accept:application/json" --header "X-Jfrog-Art-Api:${int_artifactoryIntegration_apikey}"
+                    onSuccess:
+                      - echo ""
+                    onFailure:
+                      - echo "Failure"
