@@ -235,8 +235,6 @@ pipelines:
           affinityGroup: helm_install
           integrations:
             - name: KeptnIntegration
-          inputRessources:
-            - name: helmGitHub
         execution:
           onStart:
             - echo "Initializing the Keptn context ..."
@@ -248,3 +246,4 @@ pipelines:
             # requires to create the project in Keptn
             -   JSONCreation=$(curl --location --request POST "${int_KeptnIntegration_API_URL}//controlPlane/v1/project/${int_KeptnIntegration_PROJECT_NAME}" --header "Accept:application/json" --header "x-token:${int_KeptnIntegration_API_TOKEN}" | jq .)
             - fi
+            - cat pipeline/keptn/shipyard.yaml
