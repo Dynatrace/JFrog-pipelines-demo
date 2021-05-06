@@ -235,8 +235,6 @@ pipelines:
           affinityGroup: helm_install
           integrations:
             - name: KeptnIntegration
-          inputSteps:
-            - name: Dynatrace_deployment_event
           inputRessources:
             - name: helmGitHub
         execution:
@@ -247,6 +245,6 @@ pipelines:
             - JSONOutput=$(curl --location --request GET "${int_KeptnIntegration_API_URL}//controlPlane/v1/project/${int_KeptnIntegration_PROJECT_NAME}" --header "Accept:application/json" --header "x-token:${int_KeptnIntegration_API_TOKEN}" | jq .)
             - Project=$(echo $JSONOutput| jq -r '.projectName')
             - if  [ !  "$Project" ]; then
-            -   # requires to create the project in Keptn
+            # requires to create the project in Keptn
             -   JSONCreation=$(curl --location --request POST "${int_KeptnIntegration_API_URL}//controlPlane/v1/project/${int_KeptnIntegration_PROJECT_NAME}" --header "Accept:application/json" --header "x-token:${int_KeptnIntegration_API_TOKEN}" | jq .)
             - fi
