@@ -67,7 +67,7 @@ pipelines:
             - name: helmGitHub
           dockerFileLocation: pipeline/dynatrace/
           dockerFileName: Dockerfile
-          dockerImageName: dynatracejtpp.jfrog.io/art-docker-dynatrace/busyboxPipeline
+          dockerImageName: dynatracejtpp.jfrog.io/art-docker-dynatrace/busyboxpipeline
           dockerImageTag: $run_number
 
       - name: push_image
