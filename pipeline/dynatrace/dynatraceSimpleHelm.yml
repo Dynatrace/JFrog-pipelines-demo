@@ -55,7 +55,7 @@ pipelines:
     configuration:
       environmentVariables:
         readOnly:
-          my_releaseName: "busybox${run_number}"
+          my_releaseName: "busyboxPipeline$${run_number}"
     steps:
       - name: build_image
         type: DockerBuild
@@ -67,7 +67,7 @@ pipelines:
             - name: helmGitHub
           dockerFileLocation: pipeline/dynatrace/
           dockerFileName: Dockerfile
-          dockerImageName: dynatracejtpp.jfrog.io/art-docker-dynatrace/busybox
+          dockerImageName: dynatracejtpp.jfrog.io/art-docker-dynatrace/busyboxPipeline
           dockerImageTag: $run_number
 
       - name: push_image
@@ -141,7 +141,7 @@ pipelines:
         configuration:
           helmVersion: 3
           affinityGroup: helm_install
-          releaseName: busybox${run_number}
+            releaseName: busyboxPipeline${run_number}
           integrations:
             - name: k8sIntegration
           inputResources:
