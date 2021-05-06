@@ -55,7 +55,7 @@ pipelines:
     configuration:
       environmentVariables:
         readOnly:
-          my_releaseName: "busyboxPipeline${run_number}"
+          my_releaseName: "busyboxpipeline${run_number}"
     steps:
       - name: build_image
         type: DockerBuild
@@ -141,7 +141,7 @@ pipelines:
         configuration:
           helmVersion: 3
           affinityGroup: helm_install
-          releaseName: busyboxPipeline${run_number}
+          releaseName: "busyboxpipeline${run_number}"
           integrations:
             - name: k8sIntegration
           inputResources:
