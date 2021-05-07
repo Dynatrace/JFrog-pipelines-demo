@@ -121,8 +121,8 @@ pipelines:
             - kubectl config current-context
             - kubectl get namespace
             - kubectl get pods
-            - active=$(kubectl get ns dynatrace -o json --ignore-not-found | jq .status.phase -r)
-            - if  [ ! -z "$active" ]; then
+            - ACTIVE=$(kubectl get ns dynatrace -o json --ignore-not-found | jq .status.phase -r)
+            - if  [ ! -z "$ACTIVE" ]; then
             -    kubectl create namespace dynatrace
             - fi
             - kubectl apply -f https://github.com/Dynatrace/dynatrace-oneagent-operator/releases/latest/download/kubernetes.yaml
