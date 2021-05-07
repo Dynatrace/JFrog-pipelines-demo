@@ -121,16 +121,19 @@ pipelines:
             - kubectl config current-context
             - kubectl get namespace
             - kubectl get pods
-            - kubectl create namespace dynatrace
+            - active=$(kubectl get ns dynatrace -o json --ignore-not-found | jq .status.phase -r)
+            - if  [ ! -z "$active" ]; then
+            -    kubectl create namespace dynatrace
+            - fi
             - kubectl apply -f https://github.com/Dynatrace/dynatrace-oneagent-operator/releases/latest/download/kubernetes.yaml
-            - kubectl -n dynatrace create secret generic oneagent --from-literal="apiToken=${int_dynatraceIntegration_API_TOKEN}" --from-literal="paasToken=${int_DTEnvInfo_PAAS_TOKEN}"
-            - curl -o cr.yaml https://raw.githubusercontent.com/Dynatrace/dynatrace-oneagent-operator/master/deploy/cr.yaml
-            - sed -i "s/ENVIRONMENTID/${int_dynatraceIntegration_${int_dynatraceIntegration_API_TOKEN}}/g" cr.yaml
-            - echo ${int_dynatraceIntegration_DT_URL}
-            - cat cr.yaml
+            -    kubectl -n dynatrace create secret generic oneagent --from-literal="apiToken=${int_dynatraceIntegration_API_TOKEN}" --from-literal="paasToken=${int_DTEnvInfo_PAAS_TOKEN}"
+            -    curl -o cr.yaml https://raw.githubusercontent.com/Dynatrace/dynatrace-oneagent-operator/master/deploy/cr.yaml
+            -    sed -i "s/ENVIRONMENTID/${int_dynatraceIntegration_${int_dynatraceIntegration_API_TOKEN}}/g" cr.yaml
+            -    echo ${int_dynatraceIntegration_DT_URL}
+            -    cat cr.yaml
             #- sed -i 's/apiUrl:.*/apiUrl:a/b.*'
             ## configure cr.yaml file when we have all the data needed
-            - kubectl apply -f cr.yaml
+            -    kubectl apply -f cr.yaml
           onSuccess:
             - echo "Dynatrace OneAgent has beed successfully installed"
           onFailure:
@@ -215,7 +218,6 @@ pipelines:
             - echo $int_artifactoryIntegration_url
             - echo $res_simplehelmChart_version
             - echo curl -H 'Content-Type:application/json' --location --request POST "${int_dynatraceIntegration_DT_URL}/api/v1/events"  -H 'Accept:application/json' -HAuthorization:"Api-Token ${int_dynatraceIntegration_API_TOKEN}" -d "{\"eventType\":\"CUSTOM_DEPLOYMENT\",\"attachRules\":{\"tagRule\":{\"meTypes\":\"SERVICE\",\"tags\":[{\"context\":\"CONTEXTLESS\",\"key\":\"JFrog\",\"value\":\"busybox\"}]}},\"deploymentName\":\"RuntimeDeployment\",\"deploymentVersion\":\"${res_simplehelmChart_version}\",\"deploymentProject\":\"BusyBox-nginx\",\"source\":\"${int_artifactoryIntegration_url}\",\"customProperties\":{\"ChartVersion\":${ChartVersion},\"JFrogArtifactoryUrl\":\"${int_artifactoryIntegration_url}\",\"HelmInstallationName\":${HelmInstallationName},\"RunNumber\":\"${run_number}\",\"DeployedOnCluster\":${DeployedOnCluster},\"VCS_URL\":${VCS_URL},\"DockerImageName\":\"${build_image_dockerImageName}\"}}"
-
             #- >-
              #curl 
             #- buildNumber="$(${JSONOutput}| jq)"
@@ -243,8 +245,8 @@ pipelines:
           onExecute:
             - printenv
             - JSONOutput=$(curl --location --request GET "${int_KeptnIntegration_API_URL}//controlPlane/v1/project/${int_KeptnIntegration_PROJECT_NAME}" --header "Accept:application/json" --header "x-token:${int_KeptnIntegration_API_TOKEN}" | jq .)
-            - Project=$(echo $JSONOutput| jq -r '.projectName')
-            - if  [ !  "$Project" ]; then
+            - project=$(echo $JSONOutput| jq -r '.projectName')
+            - if  [ ! -z "$project" ]; then
             # requires to create the project in Keptn
             -   JSONCreation=$(curl --location --request POST "${int_KeptnIntegration_API_URL}//controlPlane/v1/project/${int_KeptnIntegration_PROJECT_NAME}" --header "Accept:application/json" --header "x-token:${int_KeptnIntegration_API_TOKEN}" | jq .)
             - fi
