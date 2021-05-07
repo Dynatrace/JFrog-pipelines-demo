@@ -122,18 +122,16 @@ pipelines:
             - kubectl get namespace
             - kubectl get pods
             - ACTIVE=$(kubectl get ns dynatrace -o json --ignore-not-found | jq .status.phase -r)
-            - if  [ ! -z "$ACTIVE" ]; then
-            -    kubectl create namespace dynatrace
-            - fi
+            - [[ -z "$ACTIVE" ]] &&  kubectl create namespace dynatrace
             - kubectl apply -f https://github.com/Dynatrace/dynatrace-oneagent-operator/releases/latest/download/kubernetes.yaml
-            -    kubectl -n dynatrace create secret generic oneagent --from-literal="apiToken=${int_dynatraceIntegration_API_TOKEN}" --from-literal="paasToken=${int_DTEnvInfo_PAAS_TOKEN}"
-            -    curl -o cr.yaml https://raw.githubusercontent.com/Dynatrace/dynatrace-oneagent-operator/master/deploy/cr.yaml
-            -    sed -i "s/ENVIRONMENTID/${int_dynatraceIntegration_${int_dynatraceIntegration_API_TOKEN}}/g" cr.yaml
-            -    echo ${int_dynatraceIntegration_DT_URL}
-            -    cat cr.yaml
+            - kubectl -n dynatrace create secret generic oneagent --from-literal="apiToken=${int_dynatraceIntegration_API_TOKEN}" --from-literal="paasToken=${int_DTEnvInfo_PAAS_TOKEN}"
+            - curl -o cr.yaml https://raw.githubusercontent.com/Dynatrace/dynatrace-oneagent-operator/master/deploy/cr.yaml
+            - sed -i "s/ENVIRONMENTID/${int_dynatraceIntegration_${int_dynatraceIntegration_API_TOKEN}}/g" cr.yaml
+            - echo ${int_dynatraceIntegration_DT_URL}
+            - cat cr.yaml
             #- sed -i 's/apiUrl:.*/apiUrl:a/b.*'
             ## configure cr.yaml file when we have all the data needed
-            -    kubectl apply -f cr.yaml
+            - kubectl apply -f cr.yaml
           onSuccess:
             - echo "Dynatrace OneAgent has beed successfully installed"
           onFailure:
@@ -227,14 +225,14 @@ pipelines:
             #- curl -X POST "https\://scu37051.live.dynatrace.com/api/v1/events" --header "accept: application/json"
             #- curl --location --request PUT "${int_artifactoryIntegration_url}/api/storage/simplecharts/busybox-${res_simplehelmChart2_version}.tgz?properties=deployedOnCluster=${CLUSTER}%7ChelmInstallationName=${RELEASE_NAME}%7CdeploymentTimestamp=${TIME}" --header "Accept:application/json" --header "X-Jfrog-Art-Api:${int_artifactoryIntegration_apikey}"
           onSuccess:
-            - echo ""
+            - echo "Event properly sent to ${int_dynatraceIntegration_DT_URL}"
           onFailure:
             - echo "Failure"
 
       - name: Keptninitproject
         type: Bash
         configuration:
-          affinityGroup: helm_install
+          affinityGroup: launchtest
           integrations:
             - name: KeptnIntegration
           inputSteps:
@@ -244,10 +242,77 @@ pipelines:
             - echo "Initializing the Keptn context ..."
           onExecute:
             - printenv
-            - JSONOutput=$(curl --location --request GET "${int_KeptnIntegration_API_URL}//controlPlane/v1/project/${int_KeptnIntegration_PROJECT_NAME}" --header "Accept:application/json" --header "x-token:${int_KeptnIntegration_API_TOKEN}" | jq .)
+            - JSONOutput=$(curl --location --request GET "${int_KeptnIntegration_API_URL}/controlPlane/v1/project/${int_KeptnIntegration_PROJECT_NAME}" --header "Accept:application/json" --header "x-token:${int_KeptnIntegration_API_TOKEN}" | jq .)
             - project=$(echo $JSONOutput| jq -r '.projectName')
-            - if  [ ! -z "$project" ]; then
-            # requires to create the project in Keptn
-            -   JSONCreation=$(curl --location --request POST "${int_KeptnIntegration_API_URL}//controlPlane/v1/project/${int_KeptnIntegration_PROJECT_NAME}" --header "Accept:application/json" --header "x-token:${int_KeptnIntegration_API_TOKEN}" | jq .)
-            - fi
-            - cat pipeline/keptn/shipyard.yaml
+            - [[ ! -z "$project" ]] && exit 0
+            - sed -i "s/PROJECTTOREPLACE/${int_KeptnIntegration_PROJECT_NAME}/" pipeline/keptn/shipyard.yaml
+            - sed -i "s/STAGETOREPLACE/${int_KeptnIntegration_KEPTN_STAGE}/" pipeline/keptn/shipyard.yaml
+            - SHIPYARD=$(cat pipeline/keptn/shipyard.yaml | base64)
+            - HTTPCODE=$(curl --write-out "%{http_code} --silent --header 'Content-Type:application/json' --location --request POST "${int_KeptnIntegration_API_URL}/controlPlane/v1/project"  -H 'Accept:application/json' --header "x-token:${int_KeptnIntegration_API_TOKEN}" -d "{\"name\":\"${int_KeptnIntegration_PROJECT_NAME}\",\"shipyard\":\"${SHIPYARD}\"}")
+            - [[ "$HTTPCODE" != "200" ]] && exit 1
+            - echo "KEPTN project created successfully"
+            - HTTPCODE=$(curl --write-out "%{http_code} --silent --header 'Content-Type:application/json' --location --request POST "${int_KeptnIntegration_API_URL}/controlPlane/v1/project/${int_KeptnIntegration_PROJECT_NAME}/service"  -H 'Accept:application/json' --header "x-token:${int_KeptnIntegration_API_TOKEN}" -d "{\"serviceName\":\"${int_KeptnIntegration_SERVICE_NAME}" ")
+            - [[ "$HTTPCODE" != "200" ]] && exit 1
+            - echo "KEPTN Service created successfully"
+            - HTTPCODE=$(curl --write-out "%{http_code} --silent --header 'Content-Type:application/json' --location --request POST "${int_KeptnIntegration_API_URL}/v1/event"  -H 'Accept:application/json' --header "x-token:${int_KeptnIntegration_API_TOKEN}" -d "{\"data\": { \"project\": \"${int_KeptnIntegration_PROJECT_NAME}\", \"service:\": \"${int_KeptnIntegration_SERVICE_NAME}\", \"type\":\"{int_KeptnIntegration_Monitoring}\"},\"datacontenttype\": \"application/json\",\"source\": \"Jfrog\", \"specversion\": \"1.0\", \"type\": \"sh.keptn.event.monitoring.configure\"}")
+            - [[ "$HTTPCODE" != "200" ]] && exit 1
+            - echo "KEPTN Monitoring configured"
+          onSuccess:
+            - echo "Event properly sent to ${int_dynatraceIntegration_DT_URL}"
+          onFailure:
+            - echo "Failure"
+
+      - name: KeptnMarkEvaluationStartTime
+          type: Bash
+          configuration:
+            affinityGroup: launchtest
+            inputSteps:
+              - name: Keptninitproject
+          execution:
+            onStart:
+              - echo "Marking test start in Keptn ..."
+            onExecute:                                                                                                                                                                                                - [ [ ! -z "$project" ] ] && exit 0
+              - START_TIME=$(date --utc --iso-8601=seconds)
+              - add_run_variables keptnStart="${START_TIME}"                                                                                                                                                                                                                                                                            - SHIPYARD=$(cat pipeline/keptn/shipyard.yaml | base64)
+            onSuccess:
+              - echo "Event properly sent to ${int_dynatraceIntegration_DT_URL}"
+            onFailure:
+              - echo "Failure"
+      - name: Test
+          type: Bash
+          configuration:
+            affinityGroup: launchtest
+            inputSteps:
+              - name: KeptnMarkEvaluationStartTime
+          execution:
+            onStart:
+              - echo "Marking test start in Keptn ..."
+            onExecute:
+              - curl "http://www.dynatrace.com"
+              - curl "http://www.dynatrace.com"
+              - curl "http://www.dynatrace.com"
+            onSuccess:
+              - END_TIME=$(date --utc --iso-8601=seconds)
+              - add_run_variables keptnEnd="${END_TIME}"
+            onFailure:
+              - echo "Failure"
+      - name: KeptnSendEvaluationEvent
+          type: Bash
+          configuration:
+            affinityGroup: launchtest
+            integrations:
+              - name: KeptnIntegration
+            inputSteps:
+              - name: Test
+          execution:
+            onStart:
+              - echo "Sending evaluation event to Keptn for ${int_KeptnIntegration_PROJECT_NAME}.${int_KeptnIntegration_KEPTN_STAGE}.${int_KeptnIntegration_SERVICE_NAME}"
+            onExecute:
+              - DATA="{\"data\": {   \"teststrategy\" : \"manual\",   \"project\": \"${int_KeptnIntegration_PROJECT_NAME}\",    \"stage\": \"${int_KeptnIntegration_KEPTN_STAGE}\",     \"service\": \"${int_KeptnIntegration_SERVICE_NAME}\",    \"monitoring\": \"${int_KeptnIntegration_Monitoring}\",    \"labels\": {     \"buildId\" : \"${run_id}\",      \"jobname\" : \"${pipeline_name}\",     \"buildNumber\": \"${run_number}\",     \"joburl\" : \"${step_url}\"    },    \"status\": \"succeeded\",    \"result\": \"pass\",    \"test\": {   \"start\": \"${keptnStart}\",     \"end\" : \"${keptnEnd}\" },|     \"evaluation\": { \"start\": \"${starttime}\",    \"end\": \"${endtime}\"   },   \"image\" : \"${pipeline_name}\",  },|  \"datacontenttype\": \"application/json\",  \"source\": \"Jfrog\",  \"specversion\": \"1.0\",  \"type\": \"sh.keptn.event.evaluation.triggered\"}"
+              - HTTPCODE=$(curl --write-out "%{http_code} --silent --header 'Content-Type:application/json' --location --request POST "${int_KeptnIntegration_API_URL}/v1/event"  -H 'Accept:application/json' --header "x-token:${int_KeptnIntegration_API_TOKEN}" -d "${DATA}")
+              - [[ "$HTTPCODE" != "200" ]] && exit 1
+              - echo "KEPTN evaluation sent"
+            onSuccess:
+              - echo "Event properly sent to ${int_dynatraceIntegration_DT_URL}"
+            onFailure:
+              - echo "Failure"
