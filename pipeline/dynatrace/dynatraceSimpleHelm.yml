@@ -148,6 +148,7 @@ pipelines:
           releaseName: "busyboxpipeline${run_number}"
           integrations:
             - name: artifactoryIntegration
+            - name: k8sIntegration
           inputResources:
             - name: simplehelmChart
             - name: simpleDockerImage
