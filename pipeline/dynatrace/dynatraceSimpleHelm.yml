@@ -147,7 +147,7 @@ pipelines:
           affinityGroup: helm_install
           releaseName: "busyboxpipeline${run_number}"
           integrations:
-            - name: k8sIntegration
+            - name: artifactoryIntegration
           inputResources:
             - name: simplehelmChart
             - name: simpleDockerImage
@@ -157,10 +157,20 @@ pipelines:
             - values.yaml
         execution:
           onStart:
-            - kubectl config current-context
-            - add_run_variables CLUSTER="$(kubectl config current-context)"
-            - add_run_variables RELEASE_NAME="${my_releaseName}"
-            - printenv
+            - COUNT="$(kubectl get secret regcred | wc -l)"
+              - >-
+              if [[ "${COUNT}" =~ 0 ]]; then
+                echo "Creating regcred secret";
+                kubectl create secret docker-registry regcred --docker-server=dynatracejtpp.jfrog.io --docker-username=${int_artifactoryIntegration_user} --docker-password=${int_artifactoryIntegration_apikey};
+              else
+                echo "Secret found, deleting and creating a new one";
+                kubectl delete secret regcred;
+                kubectl create secret docker-registry regcred --docker-server=dynatracejtpp.jfrog.io --docker-username=${int_artifactoryIntegration_user} --docker-password=${int_artifactoryIntegration_apikey};
+              fi
+              - kubectl config current-context
+              - add_run_variables CLUSTER="$(kubectl config current-context)"
+              - add_run_variables RELEASE_NAME="${my_releaseName}"
+              - printenv
           onSuccess:
             - kubectl get pods
           onFailure:
@@ -186,7 +196,8 @@ pipelines:
             - TIME=$(date +%s)
             - curl --location --request PUT "${int_artifactoryIntegration_url}/api/storage/simplecharts/busybox-${res_simplehelmChart_version}.tgz?properties=deployedOnCluster=${CLUSTER}%7ChelmInstallationName=${RELEASE_NAME}%7CdeploymentTimestamp=${TIME}" --header "Accept:application/json" --header "X-Jfrog-Art-Api:${int_artifactoryIntegration_apikey}"
           onSuccess:
-            - echo ""
+            - echo "Check the artifact parameters"
+            - curl --location --request GET "${int_artifactoryIntegration_url}/api/storage/simplecharts/busybox-${res_simplehelmChart2_version}.tgz?properties=helmInstallationName,chart.version,deployedOnCluster" --header "Accept:application/json" --header "X-Jfrog-Art-Api:${int_artifactoryIntegration_apikey}"
           onFailure:
             - echo "Failure"
 
