@@ -129,7 +129,7 @@ pipelines:
             - kubectl apply -f https://github.com/Dynatrace/dynatrace-oneagent-operator/releases/latest/download/kubernetes.yaml
             - kubectl -n dynatrace create secret generic oneagent --from-literal="apiToken=${int_dynatraceIntegration_API_TOKEN}" --from-literal="paasToken=${int_DTEnvInfo_PAAS_TOKEN}"
             - curl -o cr.yaml https://raw.githubusercontent.com/Dynatrace/dynatrace-oneagent-operator/master/deploy/cr.yaml
-            - sed -i "s/ENVIRONMENTID/${int_dynatraceIntegration_${int_dynatraceIntegration_API_TOKEN}}/g" cr.yaml
+            - sed -i "s/ENVIRONMENTID/${int_dynatraceIntegration_API_TOKEN}}/" cr.yaml
             - echo ${int_dynatraceIntegration_DT_URL}
             - cat cr.yaml
             #- sed -i 's/apiUrl:.*/apiUrl:a/b.*'
