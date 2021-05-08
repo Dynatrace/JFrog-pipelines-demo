@@ -266,7 +266,7 @@ pipelines:
                 exit 1
               fi
             - echo "KEPTN Service created successfully"
-            - HTTPCODE=$(curl --write-out "%{http_code}" --silent --header 'Content-Type:application/json' --location --request POST "${int_KeptnIntegration_API_URL}/v1/event"  -H 'Accept:application/json' --header "x-token:${int_KeptnIntegration_API_TOKEN}" -d "{\"data\": { \"project\": \"${int_KeptnIntegration_PROJECT_NAME}\", \"service:\": \"${int_KeptnIntegration_SERVICE_NAME}\", \"type\":\"{int_KeptnIntegration_Monitoring}\"},\"datacontenttype\": \"application/json\",\"source\": \"Jfrog\", \"specversion\": \"1.0\", \"type\": \"sh.keptn.event.monitoring.configure\"}")
+            - HTTPCODE=$(curl --write-out "%{http_code}" --silent --header "Content-Type:application/json" --location --request POST "${int_KeptnIntegration_API_URL}/v1/event"  -H 'Accept:application/json' --header "x-token:${int_KeptnIntegration_API_TOKEN}" -d "{\"data\":{ \"project\":\"${int_KeptnIntegration_PROJECT_NAME}\", \"service:\":\"${int_KeptnIntegration_SERVICE_NAME}\", \"type\":\"{int_KeptnIntegration_Monitoring}\"},\"datacontenttype\":\"application/json\",\"source\":\"Jfrog\", \"specversion\" \"1.0\", \"type\":\"sh.keptn.event.monitoring.configure\"}")
             - >-
               if [[ "$HTTPCODE" != "200" ]]; then
                 exit 1
@@ -286,7 +286,7 @@ pipelines:
           execution:
             onStart:
               - echo "Marking test start in Keptn ..."
-            onExecute:                                                                                                                                                                                                - [ [ ! -z "$project" ] ] && exit 0
+            onExecute:
               - START_TIME=$(date --utc --iso-8601=seconds)
               - add_run_variables keptnStart="${START_TIME}"                                                                                                                                                                                                                                                                            - SHIPYARD=$(cat pipeline/keptn/shipyard.yaml | base64)
             onSuccess:
@@ -323,7 +323,7 @@ pipelines:
             onStart:
               - echo "Sending evaluation event to Keptn for ${int_KeptnIntegration_PROJECT_NAME}.${int_KeptnIntegration_KEPTN_STAGE}.${int_KeptnIntegration_SERVICE_NAME}"
             onExecute:
-              - DATA="{\"data\": {   \"teststrategy\" : \"manual\",   \"project\": \"${int_KeptnIntegration_PROJECT_NAME}\",    \"stage\": \"${int_KeptnIntegration_KEPTN_STAGE}\",     \"service\": \"${int_KeptnIntegration_SERVICE_NAME}\",    \"monitoring\": \"${int_KeptnIntegration_Monitoring}\",    \"labels\": {     \"buildId\" : \"${run_id}\",      \"jobname\" : \"${pipeline_name}\",     \"buildNumber\": \"${run_number}\",     \"joburl\" : \"${step_url}\"    },    \"status\": \"succeeded\",    \"result\": \"pass\",    \"test\": {   \"start\": \"${keptnStart}\",     \"end\" : \"${keptnEnd}\" },|     \"evaluation\": { \"start\": \"${starttime}\",    \"end\": \"${endtime}\"   },   \"image\" : \"${pipeline_name}\",  },|  \"datacontenttype\": \"application/json\",  \"source\": \"Jfrog\",  \"specversion\": \"1.0\",  \"type\": \"sh.keptn.event.evaluation.triggered\"}"
+              - DATA="{\"data\":{\"teststrategy\":\"manual\",\"project\":\"${int_KeptnIntegration_PROJECT_NAME}\",\"stage\":\"${int_KeptnIntegration_KEPTN_STAGE}\",\"service\":\"${int_KeptnIntegration_SERVICE_NAME}\",\"monitoring\":\"${int_KeptnIntegration_Monitoring}\",\"labels\":{\"buildId\":\"${run_id}\",\"jobname\":\"${pipeline_name}\",\"buildNumber\":\"${run_number}\",\"joburl\":\"${step_url}\" }, \"status\":\"succeeded\",\"result\":\"pass\",\"test\":{\"start\":\"${keptnStart}\",\"end\":\"${keptnEnd}\" },\"evaluation\":{\"start\":\"${starttime}\",\"end\":\"${endtime}\"},\"image\":\"${pipeline_name}\",},\"datacontenttype\":\"application/json\",\"source\":\"Jfrog\",\"specversion\":\"1.0\",\"type\":\"sh.keptn.event.evaluation.triggered\"}"
               - HTTPCODE=$(curl --write-out "%{http_code} --silent --header 'Content-Type:application/json' --location --request POST "${int_KeptnIntegration_API_URL}/v1/event"  -H 'Accept:application/json' --header "x-token:${int_KeptnIntegration_API_TOKEN}" -d "${DATA}")
               - >-
                 if [[ "$HTTPCODE" != "200" ]]; then
