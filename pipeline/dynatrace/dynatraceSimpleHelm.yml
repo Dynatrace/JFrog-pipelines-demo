@@ -122,7 +122,10 @@ pipelines:
             - kubectl get namespace
             - kubectl get pods
             - ACTIVE=$(kubectl get ns dynatrace -o json --ignore-not-found | jq .status.phase -r)
-            - [[ -z "$ACTIVE" ]] &&  kubectl create namespace dynatrace
+            - >-
+              if [[ -z "$ACTIVE" ]]; then
+                kubectl create namespace dynatrace;
+              fi
             - kubectl apply -f https://github.com/Dynatrace/dynatrace-oneagent-operator/releases/latest/download/kubernetes.yaml
             - kubectl -n dynatrace create secret generic oneagent --from-literal="apiToken=${int_dynatraceIntegration_API_TOKEN}" --from-literal="paasToken=${int_DTEnvInfo_PAAS_TOKEN}"
             - curl -o cr.yaml https://raw.githubusercontent.com/Dynatrace/dynatrace-oneagent-operator/master/deploy/cr.yaml
@@ -244,18 +247,30 @@ pipelines:
             - printenv
             - JSONOutput=$(curl --location --request GET "${int_KeptnIntegration_API_URL}/controlPlane/v1/project/${int_KeptnIntegration_PROJECT_NAME}" --header "Accept:application/json" --header "x-token:${int_KeptnIntegration_API_TOKEN}" | jq .)
             - project=$(echo $JSONOutput| jq -r '.projectName')
-            - [[ ! -z "$project" ]] && exit 0
+            - >-
+              if [[ ! -z "$project" ]]; then
+                 exit 0
+              fi
             - sed -i "s/PROJECTTOREPLACE/${int_KeptnIntegration_PROJECT_NAME}/" pipeline/keptn/shipyard.yaml
             - sed -i "s/STAGETOREPLACE/${int_KeptnIntegration_KEPTN_STAGE}/" pipeline/keptn/shipyard.yaml
             - SHIPYARD=$(cat pipeline/keptn/shipyard.yaml | base64)
             - HTTPCODE=$(curl --write-out "%{http_code} --silent --header 'Content-Type:application/json' --location --request POST "${int_KeptnIntegration_API_URL}/controlPlane/v1/project"  -H 'Accept:application/json' --header "x-token:${int_KeptnIntegration_API_TOKEN}" -d "{\"name\":\"${int_KeptnIntegration_PROJECT_NAME}\",\"shipyard\":\"${SHIPYARD}\"}")
-            - [[ "$HTTPCODE" != "200" ]] && exit 1
+            - >-
+              if [[ "$HTTPCODE" != "200" ]]; then
+                 exit 1
+              fi
             - echo "KEPTN project created successfully"
             - HTTPCODE=$(curl --write-out "%{http_code} --silent --header 'Content-Type:application/json' --location --request POST "${int_KeptnIntegration_API_URL}/controlPlane/v1/project/${int_KeptnIntegration_PROJECT_NAME}/service"  -H 'Accept:application/json' --header "x-token:${int_KeptnIntegration_API_TOKEN}" -d "{\"serviceName\":\"${int_KeptnIntegration_SERVICE_NAME}" ")
-            - [[ "$HTTPCODE" != "200" ]] && exit 1
+            - >-
+              if [[ "$HTTPCODE" != "200" ]]; then
+                exit 1
+              fi
             - echo "KEPTN Service created successfully"
-            - HTTPCODE=$(curl --write-out "%{http_code} --silent --header 'Content-Type:application/json' --location --request POST "${int_KeptnIntegration_API_URL}/v1/event"  -H 'Accept:application/json' --header "x-token:${int_KeptnIntegration_API_TOKEN}" -d "{\"data\": { \"project\": \"${int_KeptnIntegration_PROJECT_NAME}\", \"service:\": \"${int_KeptnIntegration_SERVICE_NAME}\", \"type\":\"{int_KeptnIntegration_Monitoring}\"},\"datacontenttype\": \"application/json\",\"source\": \"Jfrog\", \"specversion\": \"1.0\", \"type\": \"sh.keptn.event.monitoring.configure\"}")
-            - [[ "$HTTPCODE" != "200" ]] && exit 1
+            - HTTPCODE=$(curl --write-out "%{http_code}" --silent --header 'Content-Type:application/json' --location --request POST "${int_KeptnIntegration_API_URL}/v1/event"  -H 'Accept:application/json' --header "x-token:${int_KeptnIntegration_API_TOKEN}" -d "{\"data\": { \"project\": \"${int_KeptnIntegration_PROJECT_NAME}\", \"service:\": \"${int_KeptnIntegration_SERVICE_NAME}\", \"type\":\"{int_KeptnIntegration_Monitoring}\"},\"datacontenttype\": \"application/json\",\"source\": \"Jfrog\", \"specversion\": \"1.0\", \"type\": \"sh.keptn.event.monitoring.configure\"}")
+            - >-
+              if [[ "$HTTPCODE" != "200" ]]; then
+                exit 1
+              fi
             - echo "KEPTN Monitoring configured"
           onSuccess:
             - echo "Event properly sent to ${int_dynatraceIntegration_DT_URL}"
@@ -310,7 +325,10 @@ pipelines:
             onExecute:
               - DATA="{\"data\": {   \"teststrategy\" : \"manual\",   \"project\": \"${int_KeptnIntegration_PROJECT_NAME}\",    \"stage\": \"${int_KeptnIntegration_KEPTN_STAGE}\",     \"service\": \"${int_KeptnIntegration_SERVICE_NAME}\",    \"monitoring\": \"${int_KeptnIntegration_Monitoring}\",    \"labels\": {     \"buildId\" : \"${run_id}\",      \"jobname\" : \"${pipeline_name}\",     \"buildNumber\": \"${run_number}\",     \"joburl\" : \"${step_url}\"    },    \"status\": \"succeeded\",    \"result\": \"pass\",    \"test\": {   \"start\": \"${keptnStart}\",     \"end\" : \"${keptnEnd}\" },|     \"evaluation\": { \"start\": \"${starttime}\",    \"end\": \"${endtime}\"   },   \"image\" : \"${pipeline_name}\",  },|  \"datacontenttype\": \"application/json\",  \"source\": \"Jfrog\",  \"specversion\": \"1.0\",  \"type\": \"sh.keptn.event.evaluation.triggered\"}"
               - HTTPCODE=$(curl --write-out "%{http_code} --silent --header 'Content-Type:application/json' --location --request POST "${int_KeptnIntegration_API_URL}/v1/event"  -H 'Accept:application/json' --header "x-token:${int_KeptnIntegration_API_TOKEN}" -d "${DATA}")
-              - [[ "$HTTPCODE" != "200" ]] && exit 1
+              - >-
+                if [[ "$HTTPCODE" != "200" ]]; then
+                  exit 1
+                fi
               - echo "KEPTN evaluation sent"
             onSuccess:
               - echo "Event properly sent to ${int_dynatraceIntegration_DT_URL}"
