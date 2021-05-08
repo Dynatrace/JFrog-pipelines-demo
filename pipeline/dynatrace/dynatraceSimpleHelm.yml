@@ -278,59 +278,61 @@ pipelines:
             - echo "Failure"
 
       - name: KeptnMarkEvaluationStartTime
-          type: Bash
-          configuration:
-            affinityGroup: launchtest
-            inputSteps:
-              - name: Keptninitproject
-          execution:
-            onStart:
-              - echo "Marking test start in Keptn ..."
-            onExecute:
-              - START_TIME=$(date --utc --iso-8601=seconds)
-              - add_run_variables keptnStart="${START_TIME}"                                                                                                                                                                                                                                                                            - SHIPYARD=$(cat pipeline/keptn/shipyard.yaml | base64)
-            onSuccess:
-              - echo "Event properly sent to ${int_dynatraceIntegration_DT_URL}"
-            onFailure:
-              - echo "Failure"
+        type: Bash
+        configuration:
+          affinityGroup: launchtest
+          inputSteps:
+            - name: Keptninitproject
+        execution:
+          onStart:
+            - echo "Marking test start in Keptn ..."
+          onExecute:
+            - START_TIME=$(date --utc --iso-8601=seconds)
+            - add_run_variables keptnStart="${START_TIME}"                                                                                                                                                                                                                                                                            - SHIPYARD=$(cat pipeline/keptn/shipyard.yaml | base64)
+          onSuccess:
+            - echo "Event properly sent to ${int_dynatraceIntegration_DT_URL}"
+          onFailure:
+            - echo "Failure"
+
       - name: Test
-          type: Bash
-          configuration:
-            affinityGroup: launchtest
-            inputSteps:
-              - name: KeptnMarkEvaluationStartTime
-          execution:
-            onStart:
-              - echo "Marking test start in Keptn ..."
-            onExecute:
-              - curl "http://www.dynatrace.com"
-              - curl "http://www.dynatrace.com"
-              - curl "http://www.dynatrace.com"
-            onSuccess:
-              - END_TIME=$(date --utc --iso-8601=seconds)
-              - add_run_variables keptnEnd="${END_TIME}"
-            onFailure:
-              - echo "Failure"
+        type: Bash
+        configuration:
+          affinityGroup: launchtest
+          inputSteps:
+            - name: KeptnMarkEvaluationStartTime
+        execution:
+          onStart:
+            - echo "Marking test start in Keptn ..."
+          onExecute:
+            - curl "http://www.dynatrace.com"
+            - curl "http://www.dynatrace.com"
+            - curl "http://www.dynatrace.com"
+          onSuccess:
+            - END_TIME=$(date --utc --iso-8601=seconds)
+            - add_run_variables keptnEnd="${END_TIME}"
+          onFailure:
+            - echo "Failure"
+
       - name: KeptnSendEvaluationEvent
-          type: Bash
-          configuration:
-            affinityGroup: launchtest
-            integrations:
-              - name: KeptnIntegration
-            inputSteps:
-              - name: Test
-          execution:
-            onStart:
-              - echo "Sending evaluation event to Keptn for ${int_KeptnIntegration_PROJECT_NAME}.${int_KeptnIntegration_KEPTN_STAGE}.${int_KeptnIntegration_SERVICE_NAME}"
-            onExecute:
-              - DATA="{\"data\":{\"teststrategy\":\"manual\",\"project\":\"${int_KeptnIntegration_PROJECT_NAME}\",\"stage\":\"${int_KeptnIntegration_KEPTN_STAGE}\",\"service\":\"${int_KeptnIntegration_SERVICE_NAME}\",\"monitoring\":\"${int_KeptnIntegration_Monitoring}\",\"labels\":{\"buildId\":\"${run_id}\",\"jobname\":\"${pipeline_name}\",\"buildNumber\":\"${run_number}\",\"joburl\":\"${step_url}\" }, \"status\":\"succeeded\",\"result\":\"pass\",\"test\":{\"start\":\"${keptnStart}\",\"end\":\"${keptnEnd}\" },\"evaluation\":{\"start\":\"${starttime}\",\"end\":\"${endtime}\"},\"image\":\"${pipeline_name}\",},\"datacontenttype\":\"application/json\",\"source\":\"Jfrog\",\"specversion\":\"1.0\",\"type\":\"sh.keptn.event.evaluation.triggered\"}"
-              - HTTPCODE=$(curl --write-out "%{http_code} --silent --header 'Content-Type:application/json' --location --request POST "${int_KeptnIntegration_API_URL}/v1/event"  -H 'Accept:application/json' --header "x-token:${int_KeptnIntegration_API_TOKEN}" -d "${DATA}")
-              - >-
-                if [[ "$HTTPCODE" != "200" ]]; then
-                  exit 1
-                fi
-              - echo "KEPTN evaluation sent"
-            onSuccess:
-              - echo "Event properly sent to ${int_dynatraceIntegration_DT_URL}"
-            onFailure:
-              - echo "Failure"
+        type: Bash
+        configuration:
+          affinityGroup: launchtest
+          integrations:
+            - name: KeptnIntegration
+          inputSteps:
+            - name: Test
+        execution:
+          onStart:
+            - echo "Sending evaluation event to Keptn for ${int_KeptnIntegration_PROJECT_NAME}.${int_KeptnIntegration_KEPTN_STAGE}.${int_KeptnIntegration_SERVICE_NAME}"
+          onExecute:
+            - DATA="{\"data\":{\"teststrategy\":\"manual\",\"project\":\"${int_KeptnIntegration_PROJECT_NAME}\",\"stage\":\"${int_KeptnIntegration_KEPTN_STAGE}\",\"service\":\"${int_KeptnIntegration_SERVICE_NAME}\",\"monitoring\":\"${int_KeptnIntegration_Monitoring}\",\"labels\":{\"buildId\":\"${run_id}\",\"jobname\":\"${pipeline_name}\",\"buildNumber\":\"${run_number}\",\"joburl\":\"${step_url}\" }, \"status\":\"succeeded\",\"result\":\"pass\",\"test\":{\"start\":\"${keptnStart}\",\"end\":\"${keptnEnd}\" },\"evaluation\":{\"start\":\"${starttime}\",\"end\":\"${endtime}\"},\"image\":\"${pipeline_name}\",},\"datacontenttype\":\"application/json\",\"source\":\"Jfrog\",\"specversion\":\"1.0\",\"type\":\"sh.keptn.event.evaluation.triggered\"}"
+            - HTTPCODE=$(curl --write-out "%{http_code} --silent --header 'Content-Type:application/json' --location --request POST "${int_KeptnIntegration_API_URL}/v1/event"  -H 'Accept:application/json' --header "x-token:${int_KeptnIntegration_API_TOKEN}" -d "${DATA}")
+            - >-
+              if [[ "$HTTPCODE" != "200" ]]; then
+                exit 1
+              fi
+            - echo "KEPTN evaluation sent"
+          onSuccess:
+            - echo "Event properly sent to ${int_dynatraceIntegration_DT_URL}"
+          onFailure:
+            - echo "Failure"
