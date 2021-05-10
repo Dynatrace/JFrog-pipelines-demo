@@ -117,30 +117,16 @@ pipelines:
           onStart:
             - echo "Preparing for work..."
           onExecute:
-            - echo "Installing and configuring OneAgent"
-            - kubectl config current-context
-            - kubectl config view
-            - kubectl get namespace
-            - kubectl get pods
             - ACTIVE=$(kubectl get ns dynatrace -o json --ignore-not-found | jq .status.phase -r)
             - >-
               if [[ -z "$ACTIVE" ]]; then
-                echo "Creating the dynatrace namespace"
-                kubectl create namespace dynatrace;
+                echo "Dynatrace is not part of this cluster"
+                exit 1
               fi
-            - kubectl apply -f https://github.com/Dynatrace/dynatrace-oneagent-operator/releases/latest/download/kubernetes.yaml
-            - kubectl -n dynatrace create secret generic oneagent --from-literal="apiToken=${int_dynatraceIntegration_API_TOKEN}" --from-literal="paasToken=${int_DTEnvInfo_PAAS_TOKEN}"
-            - curl -o cr.yaml https://raw.githubusercontent.com/Dynatrace/dynatrace-oneagent-operator/master/deploy/cr.yaml
-            - sed -i "s/ENVIRONMENTID/${int_dynatraceIntegration_API_TOKEN}/" cr.yaml
-            - echo ${int_dynatraceIntegration_DT_URL}
-            - cat cr.yaml
-            #- sed -i 's/apiUrl:.*/apiUrl:a/b.*'
-            ## configure cr.yaml file when we have all the data needed
-            - kubectl apply -f cr.yaml
           onSuccess:
-            - echo "Dynatrace OneAgent has beed successfully installed"
+            - echo "Dynatrace OneAgent has been present in the cluster"
           onFailure:
-            - echo "Failure"
+            - echo "Dynatrace needs to be deployed in your K8s cluster"
 
       - name: deploy_helm
         type: HelmDeploy

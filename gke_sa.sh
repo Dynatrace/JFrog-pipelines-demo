@@ -69,7 +69,13 @@ rules:
   - services
   - deployments
   - namespaces
+  - customresourcedefinitions
+  - podsecuritypolicies
   - pvcs
+  - rolebindings
+  - clusterroles
+  - clusterrolebindings
+  - roles
   - configmaps
   verbs:
   - impersonate
