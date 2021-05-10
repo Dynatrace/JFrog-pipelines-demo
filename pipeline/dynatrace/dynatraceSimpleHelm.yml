@@ -119,6 +119,7 @@ pipelines:
           onExecute:
             - echo "Installing and configuring OneAgent"
             - kubectl config current-context
+            - kubectl config view
             - kubectl get namespace
             - kubectl get pods
             - ACTIVE=$(kubectl get ns dynatrace -o json --ignore-not-found | jq .status.phase -r)
