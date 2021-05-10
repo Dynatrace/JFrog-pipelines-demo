@@ -129,7 +129,7 @@ pipelines:
             - kubectl apply -f https://github.com/Dynatrace/dynatrace-oneagent-operator/releases/latest/download/kubernetes.yaml
             - kubectl -n dynatrace create secret generic oneagent --from-literal="apiToken=${int_dynatraceIntegration_API_TOKEN}" --from-literal="paasToken=${int_DTEnvInfo_PAAS_TOKEN}"
             - curl -o cr.yaml https://raw.githubusercontent.com/Dynatrace/dynatrace-oneagent-operator/master/deploy/cr.yaml
-            - sed -i "s/ENVIRONMENTID/${int_dynatraceIntegration_API_TOKEN}}/" cr.yaml
+            - sed -i "s/ENVIRONMENTID/${int_dynatraceIntegration_API_TOKEN}/" cr.yaml
             - echo ${int_dynatraceIntegration_DT_URL}
             - cat cr.yaml
             #- sed -i 's/apiUrl:.*/apiUrl:a/b.*'
@@ -300,7 +300,7 @@ pipelines:
             - echo "Marking test start in Keptn ..."
           onExecute:
             - START_TIME=$(date --utc --iso-8601=seconds)
-            - add_run_variables keptnStart="${START_TIME}"                                                                                                                                                                                                                                                                            - SHIPYARD=$(cat pipeline/keptn/shipyard.yaml | base64)
+            - add_run_variables keptnStart="${START_TIME}"
           onSuccess:
             - echo "Event properly sent to ${int_dynatraceIntegration_DT_URL}"
           onFailure:
@@ -310,15 +310,32 @@ pipelines:
         type: Bash
         configuration:
           affinityGroup: launchtest
+          integrations:
+            - name: dynatraceIntegration
+            - name: KeptnIntegration
           inputSteps:
             - name: KeptnMarkEvaluationStartTime
         execution:
           onStart:
             - echo "Marking test start in Keptn ..."
           onExecute:
-            - curl "http://www.dynatrace.com"
-            - curl "http://www.dynatrace.com"
-            - curl "http://www.dynatrace.com"
+            - JMETER_VERSION="5.3"
+            - JMETER_HOME="/opt/apache-jmeter-${JMETER_VERSION}"
+            - JMETER_BIN="${JMETER_HOME}/bin"
+            - JMETER_DOWNLOAD_URL="https://archive.apache.org/dist/jmeter/binaries/apache-jmeter-${JMETER_VERSION}.tgz"
+            - ->
+              apt-get update
+              apt-get upgrade \
+              apt-get add ca-certificates \
+              update-ca-certificates \
+              apt-get add --update openjdk8-jre tzdata curl unzip bash \
+              apt-get add --no-cache nss \
+              mkdir -p /tmp/dependencies  \
+              curl -L --silent ${JMETER_DOWNLOAD_URL} >  /tmp/dependencies/apache-jmeter-${JMETER_VERSION}.tgz  \
+              mkdir -p /opt  \
+              tar -xzf /tmp/dependencies/apache-jmeter-${JMETER_VERSION}.tgz -C /opt  \
+              rm -rf /tmp/dependencies
+            - ${JMETER_BIN}/jmeter -n -t pipeline/dynatrace/dynatraceSimpleHelm.yml -JDT_API_TOKEN=${int_dynatraceIntegration_API_TOKEN} -JDT_TENANT=${int_dynatraceIntegration_TENANT_ID} -JKEPTN_SERVICE=${int_KeptnIntegration_SERVICE_NAME} -JKEPTN_STAGE=${int_KeptnIntegration_KEPTN_STAGE} -JKEPTN_PROJECT=${int_KeptnIntegration_PROJECT_NAME}
           onSuccess:
             - END_TIME=$(date --utc --iso-8601=seconds)
             - add_run_variables keptnEnd="${END_TIME}"
