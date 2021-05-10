@@ -125,6 +125,7 @@ pipelines:
             - ACTIVE=$(kubectl get ns dynatrace -o json --ignore-not-found | jq .status.phase -r)
             - >-
               if [[ -z "$ACTIVE" ]]; then
+                echo "Creating the dynatrace namespace"
                 kubectl create namespace dynatrace;
               fi
             - kubectl apply -f https://github.com/Dynatrace/dynatrace-oneagent-operator/releases/latest/download/kubernetes.yaml
