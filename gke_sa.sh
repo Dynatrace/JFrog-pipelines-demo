@@ -65,6 +65,8 @@ rules:
   - groups
   - serviceaccounts
   - secrets
+  - pods
+  - services
   - deployments
   - namespaces
   - pvcs
