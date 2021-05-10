@@ -5,11 +5,8 @@
 replicaCount: 1
 
 image:
-  repository: nginx
-  #tag: ${res_simpleDockerImage_imageTag}
-  tag: stable
-#  repository: nginx
-#  tag: stable
+  repository: ${res_simpleDockerImage_imageName}
+  tag: ${res_simpleDockerImage_imageTag}
   pullPolicy: IfNotPresent
 
 nameOverride: ""
