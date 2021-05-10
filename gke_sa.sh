@@ -66,6 +66,7 @@ rules:
   - serviceaccounts
   - secrets
   - deployments
+  - namespaces
   - pvcs
   - configmaps
   verbs:
