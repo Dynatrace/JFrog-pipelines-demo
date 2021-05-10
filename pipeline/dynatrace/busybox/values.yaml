@@ -9,6 +9,10 @@ image:
   tag: ${res_simpleDockerImage_imageTag}
   pullPolicy: IfNotPresent
 
+global:
+  imagePullSecrets:
+    - regcred
+
 nameOverride: ""
 fullnameOverride: ""
 
