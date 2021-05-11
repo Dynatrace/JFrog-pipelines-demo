@@ -198,7 +198,6 @@ pipelines:
           affinityGroup: helm_install
           integrations:
             - name: dockeratrifactory
-            - name: dockerImage
             - name: dynatraceIntegration
           inputResources:
             - name: simplehelmChart
@@ -233,7 +232,8 @@ pipelines:
           affinityGroup: launchtest
           integrations:
             - name: KeptnIntegration
-            - name : helmGitHub
+          inputRessources:
+            - name: helmGitHub
           inputSteps:
             - name: Dynatrace_deployment_event
         execution:
@@ -296,8 +296,9 @@ pipelines:
           affinityGroup: launchtest
           integrations:
             - name: dynatraceIntegration
-            - name: helmGitHub
             - name: KeptnIntegration
+          inputRessources:
+            - name: helmGitHub
           inputSteps:
             - name: KeptnMarkEvaluationStartTime
         execution:
