@@ -21,14 +21,14 @@ resources:
   - name: simpleBuildInfo
     type: BuildInfo
     configuration:
-      sourceArtifactory: artifactoryIntegration
+      sourceArtifactory: dockeratrifactory
       buildName: SampleApp
       buildNumber: 1
 
   - name: simpleHelmChartBuildInfo
     type: BuildInfo
     configuration:
-      sourceArtifactory: artifactoryIntegration
+      sourceArtifactory: dockeratrifactory
       buildName: SampleApp
       buildNumber: '0.1.${run_number}'
 
@@ -45,7 +45,7 @@ resources:
   - name: simplehelmChart
     type: HelmChart
     configuration:
-      sourceArtifactory: artifactoryIntegration
+      sourceArtifactory: dockeratrifactory
       repository: simplecharts
       chart: busybox
       version: 0.0.0
