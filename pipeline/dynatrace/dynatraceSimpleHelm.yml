@@ -236,6 +236,8 @@ pipelines:
             - name: KeptnIntegration
           inputSteps:
             - name: Dynatrace_deployment_event
+          inputResources:
+            - name: helmGitHub
         execution:
           onStart:
             - echo "Initializing the Keptn context ..."
@@ -297,6 +299,8 @@ pipelines:
           integrations:
             - name: dynatraceIntegration
             - name: KeptnIntegration
+          inputResources:
+            - name: helmGitHub
           inputSteps:
             - name: KeptnMarkEvaluationStartTime
         execution:
