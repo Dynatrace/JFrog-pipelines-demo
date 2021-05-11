@@ -1,6 +1,6 @@
 replicaCount: 1
 image:
-  repository: ${res_simpleDockerImage_imageName}
-  tag: ${res_simpleDockerImage_imageTag}
+  repository: ${res_dockerImage_imageName}
+  tag: ${res_dockerImage_imageTag}
   pullPolicy: IfNotPresent
   port: 80

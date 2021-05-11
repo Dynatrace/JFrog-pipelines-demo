@@ -10,12 +10,12 @@ resources:
       buildOn:
         commit: true
 
-  - name: simpleDockerImage # change
+  - name: dockerImage # change
     type: Image
     configuration:
-      registry: simplehelmDockerIntegration
+      registry: Dockerregistry
       sourceRepository: art-docker-dynatrace
-      imageName: dynatracejtpp.jfrog.io/art-docker-dynatrace/busybox
+      imageName: dynatracejtpp.jfrog.io/art-docker-dynatrace/busyboxpipeline
       imageTag: '${run_number}'
 
   - name: simpleBuildInfo
@@ -82,7 +82,7 @@ pipelines:
             - name: build_image
           outputResources:
             - name: simpleBuildInfo
-            - name: simpleDockerImage
+            - name: dockerImage
 
       - name: helm_build
         type: HelmPublish
@@ -93,6 +93,7 @@ pipelines:
           inputSteps:
             - name: push_image
           inputResources:
+            - name: dockerImage
             - name: simplehelmRepoChart
               trigger: false
           outputResources:
@@ -139,7 +140,7 @@ pipelines:
             - name: k8sIntegration
           inputResources:
             - name: simplehelmChart
-            - name: simpleDockerImage
+            - name: dockerImage
           inputSteps:
             - name: install_oneAgent_operator
           valueFilePaths:
@@ -197,6 +198,7 @@ pipelines:
           affinityGroup: helm_install
           integrations:
             - name: dockeratrifactory
+            - name: dockerImage
             - name: dynatraceIntegration
           inputResources:
             - name: simplehelmChart
@@ -231,6 +233,7 @@ pipelines:
           affinityGroup: launchtest
           integrations:
             - name: KeptnIntegration
+            - name : helmGitHub
           inputSteps:
             - name: Dynatrace_deployment_event
         execution:
@@ -293,6 +296,7 @@ pipelines:
           affinityGroup: launchtest
           integrations:
             - name: dynatraceIntegration
+            - name: helmGitHub
             - name: KeptnIntegration
           inputSteps:
             - name: KeptnMarkEvaluationStartTime
