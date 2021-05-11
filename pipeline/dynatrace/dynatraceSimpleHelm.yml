@@ -232,8 +232,6 @@ pipelines:
           affinityGroup: launchtest
           integrations:
             - name: KeptnIntegration
-          inputRessources:
-            - name: helmGitHub
           inputSteps:
             - name: Dynatrace_deployment_event
         execution:
@@ -297,8 +295,6 @@ pipelines:
           integrations:
             - name: dynatraceIntegration
             - name: KeptnIntegration
-          inputRessources:
-            - name: helmGitHub
           inputSteps:
             - name: KeptnMarkEvaluationStartTime
         execution:
