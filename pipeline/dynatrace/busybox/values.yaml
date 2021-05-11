@@ -11,9 +11,9 @@ image:
   tag: stable
   pullPolicy: IfNotPresent
 
-global:
-  imagePullSecrets:
-    - regcred
+#global:
+ # imagePullSecrets:
+ #   - regcred
 
 nameOverride: ""
 fullnameOverride: ""
