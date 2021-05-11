@@ -62,7 +62,7 @@ pipelines:
         configuration:
           affinityGroup: buildAndPush
           integrations:
-            - name: artifactoryIntegration
+            - name: dockeratrifactory
           inputResources:
             - name: helmGitHub
           dockerFileLocation: pipeline/dynatrace/
@@ -76,7 +76,7 @@ pipelines:
           affinityGroup: buildAndPush
           autoPublishBuildInfo: true
           integrations:
-            - name: artifactoryIntegration
+            - name: dockeratrifactory
           targetRepository: art-docker-dynatrace
           inputSteps:
             - name: build_image
@@ -135,7 +135,7 @@ pipelines:
           affinityGroup: helm_install
           releaseName: "busyboxpipeline${run_number}"
           integrations:
-            - name: artifactoryIntegration
+            - name: dockeratrifactory
             - name: k8sIntegration
           inputResources:
             - name: simplehelmChart
@@ -151,11 +151,11 @@ pipelines:
               if [[ "${COUNT}" =~ 0 ]];
               then
                 echo "Creating regcred secret";
-                kubectl create secret docker-registry regcred --docker-server=dynatracejtpp.jfrog.io --docker-username=${int_artifactoryIntegration_user} --docker-password=${int_artifactoryIntegration_apikey};
+                kubectl create secret docker-registry regcred --docker-server=dynatracejtpp.jfrog.io --docker-username=${int_dockeratrifactory_user} --docker-password=${int_dockeratrifactory_apikey};
               else
                 echo "Secret found, deleting and creating a new one";
                 kubectl delete secret regcred;
-                kubectl create secret docker-registry regcred --docker-server=dynatracejtpp.jfrog.io --docker-username=${int_artifactoryIntegration_user} --docker-password=${int_artifactoryIntegration_apikey};
+                kubectl create secret docker-registry regcred --docker-server=dynatracejtpp.jfrog.io --docker-username=${int_dockeratrifactory_user} --docker-password=${int_dockeratrifactory_apikey};
               fi
             - kubectl config current-context
             - add_run_variables CLUSTER="$(kubectl config current-context)"
@@ -171,7 +171,7 @@ pipelines:
         configuration:
           affinityGroup: helm_install
           integrations:
-            - name: artifactoryIntegration
+            - name: dockeratrifactory
           inputResources:
             - name: simplehelmChart
           inputSteps:
@@ -184,10 +184,10 @@ pipelines:
             - echo "Modifying helm chart properties"
             - echo "Set current time as a deployment time"
             - TIME=$(date +%s)
-            - curl --location --request PUT "${int_artifactoryIntegration_url}/api/storage/simplecharts/busybox-${res_simplehelmChart_version}.tgz?properties=deployedOnCluster=${CLUSTER}%7ChelmInstallationName=${RELEASE_NAME}%7CdeploymentTimestamp=${TIME}" --header "Accept:application/json" --header "X-Jfrog-Art-Api:${int_artifactoryIntegration_apikey}"
+            - curl --location --request PUT "${int_dockeratrifactory_url}/api/storage/simplecharts/busybox-${res_simplehelmChart_version}.tgz?properties=deployedOnCluster=${CLUSTER}%7ChelmInstallationName=${RELEASE_NAME}%7CdeploymentTimestamp=${TIME}" --header "Accept:application/json" --header "X-Jfrog-Art-Api:${int_dockeratrifactory_apikey}"
           onSuccess:
             - echo "Check the artifact parameters"
-            - curl --location --request GET "${int_artifactoryIntegration_url}/api/storage/simplecharts/busybox-${res_simplehelmChart_version}.tgz?properties=helmInstallationName,chart.version,deployedOnCluster" --header "Accept:application/json" --header "X-Jfrog-Art-Api:${int_artifactoryIntegration_apikey}"
+            - curl --location --request GET "${int_dockeratrifactory_url}/api/storage/simplecharts/busybox-${res_simplehelmChart_version}.tgz?properties=helmInstallationName,chart.version,deployedOnCluster" --header "Accept:application/json" --header "X-Jfrog-Art-Api:${int_dockeratrifactory_apikey}"
           onFailure:
             - echo "Failure"
 
@@ -196,7 +196,7 @@ pipelines:
         configuration:
           affinityGroup: helm_install
           integrations:
-            - name: artifactoryIntegration
+            - name: dockeratrifactory
             - name: dynatraceIntegration
           inputResources:
             - name: simplehelmChart
@@ -207,7 +207,7 @@ pipelines:
             - echo "Preparing for work..."
           onExecute:
             - printenv
-            - JSONOutput=$(curl --location --request GET "${int_artifactoryIntegration_url}/api/storage/simplecharts/busybox-${res_simplehelmChart_version}.tgz?properties=helmInstallationName,chart.version,deployedOnCluster,vcs.url" --header "Accept:application/json" --header "X-Jfrog-Art-Api:${int_artifactoryIntegration_apikey}" | jq .)
+            - JSONOutput=$(curl --location --request GET "${int_dockeratrifactory_url}/api/storage/simplecharts/busybox-${res_simplehelmChart_version}.tgz?properties=helmInstallationName,chart.version,deployedOnCluster,vcs.url" --header "Accept:application/json" --header "X-Jfrog-Art-Api:${int_dockeratrifactory_apikey}" | jq .)
             - echo $JSONOutput
             - ChartVersion=$(echo $JSONOutput | jq '.properties."chart.version"[0]')
             - HelmInstallationName=$(echo $JSONOutput | jq '.properties.helmInstallationName[0]')
