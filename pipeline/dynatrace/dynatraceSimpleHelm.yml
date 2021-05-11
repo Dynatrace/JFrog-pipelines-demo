@@ -234,15 +234,16 @@ pipelines:
           affinityGroup: launchtest
           integrations:
             - name: KeptnIntegration
+            - name: DT_PIPELINE
           inputSteps:
             - name: Dynatrace_deployment_event
-          inputResources:
-            - name: helmGitHub
         execution:
           onStart:
             - echo "Initializing the Keptn context ..."
           onExecute:
             - printenv
+            - git clone https://${int_DT_PIPELINE_token}@github.com/JFrogDynatrace/pipelines-demo.git
+            - cd pipelines-demo
             - JSONOutput=$(curl --location --request GET "${int_KeptnIntegration_API_URL}/controlPlane/v1/project/${int_KeptnIntegration_PROJECT_NAME}" --header "Accept:application/json" --header "x-token:${int_KeptnIntegration_API_TOKEN}" | jq .)
             - project=$(echo $JSONOutput| jq -r '.projectName')
             - >-
@@ -299,6 +300,7 @@ pipelines:
           integrations:
             - name: dynatraceIntegration
             - name: KeptnIntegration
+            - name: DT_PIPELINE
           inputResources:
             - name: helmGitHub
           inputSteps:
@@ -311,6 +313,8 @@ pipelines:
             - JMETER_HOME="/opt/apache-jmeter-${JMETER_VERSION}"
             - JMETER_BIN="${JMETER_HOME}/bin"
             - JMETER_DOWNLOAD_URL="https://archive.apache.org/dist/jmeter/binaries/apache-jmeter-${JMETER_VERSION}.tgz"
+            - git clone https://${int_DT_PIPELINE_token}@github.com/JFrogDynatrace/pipelines-demo.git
+            - cd pipelines-demo
             - ->
               apt-get update
               apt-get upgrade \

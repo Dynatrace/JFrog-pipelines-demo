@@ -5,8 +5,10 @@
 replicaCount: 1
 
 image:
-  repository: dynatracejtpp.jfrog.io/art-docker-dynatrace/busyboxpipeline
-  tag: ${res_dockerImage_imageTag}
+ # repository: dynatracejtpp.jfrog.io/art-docker-dynatrace/busyboxpipeline
+  #tag: ${res_dockerImage_imageTag}
+  repository: ngnix
+  tag: stable
   pullPolicy: IfNotPresent
 
 global:
