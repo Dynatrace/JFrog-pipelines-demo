@@ -7,7 +7,6 @@ metadata:
     chart: {{ include "busybox.chart" . }}
     release: {{ .Release.Name }}
     heritage: {{ .Release.Service }}
-    namespace: pipelines
 spec:
   type: {{ .Values.service.type }}
   ports:

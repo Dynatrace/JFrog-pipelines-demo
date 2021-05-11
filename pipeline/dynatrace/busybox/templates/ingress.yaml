@@ -10,7 +10,6 @@ metadata:
     chart: {{ include "busybox.chart" . }}
     release: {{ .Release.Name }}
     heritage: {{ .Release.Service }}
-    namespace: pipelines
 {{- with .Values.ingress.annotations }}
   annotations:
 {{ toYaml . | indent 4 }}
