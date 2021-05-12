@@ -53,6 +53,13 @@ resources:
 pipelines:
   - name: dynatrace_demo_helm
     configuration:
+      runtime:
+        type: image
+        image:
+          auto:
+            language: java
+            versions:
+              - "11"
       environmentVariables:
         readOnly:
           my_releaseName: "busyboxpipeline${run_number}"
@@ -338,11 +345,7 @@ pipelines:
             - JMETER_DOWNLOAD_URL="https://archive.apache.org/dist/jmeter/binaries/apache-jmeter-${JMETER_VERSION}.tgz"
             - git clone https://${int_DT_PIPELINE_token}@github.com/JFrogDynatrace/pipelines-demo.git
             - cd pipelines-demo
-            - add-apt-repository ppa:webupd8team/java
-            - apt-get update --fix-missing
-            - apt-get upgrade
             - mkdir -p /tmp/dependencies
-            - apt install oracle-java8-installer
             - curl -L --silent ${JMETER_DOWNLOAD_URL} >  /tmp/dependencies/apache-jmeter-${JMETER_VERSION}.tgz
             - tar -xzf /tmp/dependencies/apache-jmeter-${JMETER_VERSION}.tgz -C /opt
             - rm -rf /tmp/dependencies
