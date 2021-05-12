@@ -269,7 +269,7 @@ pipelines:
                  return 1
               fi
             - echo "KEPTN project created successfully"
-            - HTTPCODE=$(curl --write-out "%{http_code}" --insecure --silent --header 'Content-Type:application/json' --location --request POST "${int_KeptnIntegration_API_URL}/controlPlane/v1/project/${int_KeptnIntegration_PROJECT_NAME}/service"  -H 'Accept:application/json' --header "x-token:${int_KeptnIntegration_API_TOKEN}" -d "{\"serviceName\":\"${int_KeptnIntegration_SERVICE_NAME}" ")
+            - HTTPCODE=$(curl --write-out "%{http_code}" --insecure --silent --header 'Content-Type:application/json' --location --request POST "${int_KeptnIntegration_API_URL}/controlPlane/v1/project/${int_KeptnIntegration_PROJECT_NAME}/service"  -H 'Accept:application/json' --header "x-token:${int_KeptnIntegration_API_TOKEN}" -d "{\"serviceName\":\"${int_KeptnIntegration_SERVICE_NAME}\" }")
             - echo "${HTTPCODE} -> url ${int_KeptnIntegration_API_URL}"
             - >-
               if [ $HTTPCODE -ge 400 ]; then
