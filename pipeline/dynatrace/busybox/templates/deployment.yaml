@@ -27,7 +27,7 @@ spec:
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           env:
             - name: DT_TAGS
-              value: "release={{ .Release.Name }} app={{ include \"busybox.name\" . }}"
+              value: release={{ .Release.Name }} app={{ include "busybox.name" . }}
           ports:
             - name: http
               containerPort: 80
