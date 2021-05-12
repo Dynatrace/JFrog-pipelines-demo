@@ -399,7 +399,7 @@ pipelines:
           onExecute:
             - STARTTS=$(date -u +%s)
             - TIME=0
-            >-
+            - >-
               while $TIME < 120
               do
                   JSONRESPONSE=$(curl  --insecure --silent --header 'Content-Type:application/json' --location --request GET "${int_KeptnIntegration_API_URL}/mongodb-datastore/event?keptnContext=${keptnContext}&type=sh.keptn.event.evaluation.finished"  -H 'Accept:application/json' --header "x-token:${int_KeptnIntegration_API_TOKEN}" | jq .)
