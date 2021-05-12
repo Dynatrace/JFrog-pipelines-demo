@@ -432,9 +432,12 @@ pipelines:
                       sleep 20
                   else
                       if [[ -z $(echo ${JSONRESPONSE} | jq -r '.events.data') ]]; then
-                        score=$(echo ${JSONRESPONSE} | jq -r '.events.data.evaluation.score')
-                        result=$(echo ${JSONRESPONSE} | jq -r '.events.data.evaluation.result')
+                        echo "Keptn evaluation found"
+                        score=$(echo ${JSONRESPONSE} | jq -r '.events.data[] | .evaluation.score')
+                        result=$(echo ${JSONRESPONSE} | jq -r '.events.data[] | .evaluation.result')
                         return 0
+                      else
+                        echo "No evaluation found"
                       fi
                   fi
                   TIME=$(($(date -u +%s) - ${STARTTS}))
