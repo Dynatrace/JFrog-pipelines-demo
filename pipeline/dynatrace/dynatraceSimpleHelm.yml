@@ -341,7 +341,7 @@ pipelines:
             - apt-get update --fix-missing
             - apt-get upgrade
             - mkdir -p /tmp/dependencies
-            - java -version
+            - apt-get install openjdk-8-jre-headless
             - curl -L --silent ${JMETER_DOWNLOAD_URL} >  /tmp/dependencies/apache-jmeter-${JMETER_VERSION}.tgz
             - tar -xzf /tmp/dependencies/apache-jmeter-${JMETER_VERSION}.tgz -C /opt
             - rm -rf /tmp/dependencies
