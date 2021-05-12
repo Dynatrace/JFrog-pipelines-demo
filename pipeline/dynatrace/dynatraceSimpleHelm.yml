@@ -252,7 +252,9 @@ pipelines:
             - project=$(echo $JSONOutput| jq -r '.projectName')
             - echo "$project"
             - >-
-              [[ "$project" == "${int_KeptnIntegration_PROJECT_NAME}" ]] &&  return 0
+              if [ "$project" = "${int_KeptnIntegration_PROJECT_NAME}" ]; then
+                return 0
+              fi
             - sed -i "s/PROJECTTOREPLACE/${int_KeptnIntegration_PROJECT_NAME}/" pipeline/keptn/shipyard.yaml
             - sed -i "s/STAGETOREPLACE/${int_KeptnIntegration_KEPTN_STAGE}/" pipeline/keptn/shipyard.yaml
             - SHIPYARD=$(cat pipeline/keptn/shipyard.yaml |base64)
