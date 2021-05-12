@@ -250,9 +250,9 @@ pipelines:
             - JSONOutput=$(curl --insecure --location --request GET "${int_KeptnIntegration_API_URL}/controlPlane/v1/project/${int_KeptnIntegration_PROJECT_NAME}" --header "Accept:application/json" --header "x-token:${int_KeptnIntegration_API_TOKEN}" | jq .)
             - echo "$JSONOutput"
             - project=$(echo $JSONOutput| jq -r '.projectName')
-            - echo $project
+            - echo "$project"
             - >-
-              [[ $project -ne "null" ]] &&  exit 0
+              [[ "$project" -ne "null" ]] &&  exit 0
             - sed -i "s/PROJECTTOREPLACE/${int_KeptnIntegration_PROJECT_NAME}/" pipeline/keptn/shipyard.yaml
             - sed -i "s/STAGETOREPLACE/${int_KeptnIntegration_KEPTN_STAGE}/" pipeline/keptn/shipyard.yaml
             - SHIPYARD=$(cat pipeline/keptn/shipyard.yaml | base64)
