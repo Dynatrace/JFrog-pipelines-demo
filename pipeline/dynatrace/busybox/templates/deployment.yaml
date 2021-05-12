@@ -28,6 +28,12 @@ spec:
           env:
             - name: DT_TAGS
               value: release={{ .Release.Name }} app={{ include "busybox.name" . }}
+            - name: DT_RELEASE_VERSION
+              value: {{ $.Chart.AppVersion }}
+            - name: DT_RELEASE_STAGE
+              value: {{ .Values.stage }}
+            - name: DT_RELEASE_PRODUCT
+              value: {{ include "busybox.fullname" . }}
           ports:
             - name: http
               containerPort: 80
