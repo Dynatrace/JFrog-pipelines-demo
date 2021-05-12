@@ -18,7 +18,7 @@ spec:
       labels:
         app: {{ include "busybox.name" . }}
         release: {{ .Release.Name }}
-        app.kubernetes.io/version:  0.1.3
+        app.kubernetes.io/version:  {{ $.Chart.AppVersion }}
         app.kubernetes.io/part-of : {{ include "busybox.fullname" . }}
     spec:
       containers:
