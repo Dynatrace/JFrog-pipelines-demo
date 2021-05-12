@@ -265,20 +265,20 @@ pipelines:
             - HTTPCODE=$(curl --write-out "%{http_code}" --insecure --silent --header 'Content-Type:application/json' --location --request POST "${int_KeptnIntegration_API_URL}/controlPlane/v1/project"  -H 'Accept:application/json' --header "x-token:${int_KeptnIntegration_API_TOKEN}" -d "{\"name\":\"${int_KeptnIntegration_PROJECT_NAME}\",\"shipyard\":\"${SHIPYARD}\"}")
             - echo "${HTTPCODE} -> url ${int_KeptnIntegration_API_URL}"
             - >-
-              if [[ "$HTTPCODE" >= 400 ]]; then
+              if [ $HTTPCODE -ge 400 ]; then
                  return 1
               fi
             - echo "KEPTN project created successfully"
             - HTTPCODE=$(curl --write-out "%{http_code}" --insecure --silent --header 'Content-Type:application/json' --location --request POST "${int_KeptnIntegration_API_URL}/controlPlane/v1/project/${int_KeptnIntegration_PROJECT_NAME}/service"  -H 'Accept:application/json' --header "x-token:${int_KeptnIntegration_API_TOKEN}" -d "{\"serviceName\":\"${int_KeptnIntegration_SERVICE_NAME}" ")
             - echo "${HTTPCODE} -> url ${int_KeptnIntegration_API_URL}"
             - >-
-              if [[ "$HTTPCODE" >= 400 ]]; then
+              if [ $HTTPCODE -ge 400 ]; then
                 return 1
               fi
             - echo "KEPTN Service created successfully"
             - HTTPCODE=$(curl --write-out "%{http_code}" --insecure --silent --header "Content-Type:application/json" --location --request POST "${int_KeptnIntegration_API_URL}/v1/event"  -H 'Accept:application/json' --header "x-token:${int_KeptnIntegration_API_TOKEN}" -d "{\"data\":{ \"project\":\"${int_KeptnIntegration_PROJECT_NAME}\", \"service:\":\"${int_KeptnIntegration_SERVICE_NAME}\", \"type\":\"{int_KeptnIntegration_Monitoring}\"},\"datacontenttype\":\"application/json\",\"source\":\"Jfrog\", \"specversion\" \"1.0\", \"type\":\"sh.keptn.event.monitoring.configure\"}")
             - >-
-              if [[ "$HTTPCODE" >= 400 ]]; then
+              if [ $HTTPCODE -ge 400 ]; then
                 return 1
               fi
             - echo "KEPTN Monitoring configured"
@@ -289,7 +289,7 @@ pipelines:
             - HTTPCODE=$(curl --write-out "%{http_code}" --insecure --silent --header "Content-Type:application/json" --location --request POST "${int_KeptnIntegration_API_URL}/configuration-service/v1/project/${int_KeptnIntegration_PROJECT_NAME}/resource"  -H 'Accept:application/json' --header "x-token:${int_KeptnIntegration_API_TOKEN}" -d "${BODY}")
             - echo "${HTTPCODE} -> url ${int_KeptnIntegration_API_URL}"
             - >-
-              if [[ "$HTTPCODE" > 400 ]]; then
+              if [  $HTTPCODE -ge 400 ]; then
                  return 1
               fi
             - echo "Dynatrace SLI configured"
