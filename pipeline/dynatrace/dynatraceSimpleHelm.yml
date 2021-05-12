@@ -414,7 +414,7 @@ pipelines:
                       return 0
                   fi
                   TIME=$(($(date -u +%s) - ${STARTTS}))
-              done
+              done;
             - echo "KEPTN ${score},result:${result}"
             - >-
               if[[ $result == "warning"]
