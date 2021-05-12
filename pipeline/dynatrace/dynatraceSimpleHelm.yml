@@ -165,6 +165,8 @@ pipelines:
           onSuccess:
             - kubectl get pods
             - kubectl wait --for=condition=Available deploy/${my_releaseName} --timeout=120s
+            - PODS=$(kubectl get pods --no-headers | awk '{print $1}' | grep ${my_releaseName} | tr '\n' ' ')
+            - kubectl wait --for=condition=Ready pods/${PODS} --timeout=120s
             - SERVICE_IP=$(kubectl get svc --namespace default busyboxpipeline${run_number} -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
             - add_run_variables SERVICE_IP="${SERVICE_IP}"
           onFailure:
@@ -250,9 +252,7 @@ pipelines:
             - project=$(echo $JSONOutput| jq -r '.projectName')
             - echo $project
             - >-
-              if [[ ! -z "$project" ]]; then
-                 exit 0
-              fi
+              [[ ! -z "$project" ]] &&  exit 0
             - sed -i "s/PROJECTTOREPLACE/${int_KeptnIntegration_PROJECT_NAME}/" pipeline/keptn/shipyard.yaml
             - sed -i "s/STAGETOREPLACE/${int_KeptnIntegration_KEPTN_STAGE}/" pipeline/keptn/shipyard.yaml
             - SHIPYARD=$(cat pipeline/keptn/shipyard.yaml | base64)
