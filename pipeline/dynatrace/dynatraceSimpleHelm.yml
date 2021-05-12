@@ -431,10 +431,10 @@ pipelines:
                   then
                       sleep 20
                   else
-                      if [[ -z $(echo ${JSONRESPONSE} | jq -r '.events.data') ]]; then
+                      if [[ -z $(echo ${JSONRESPONSE} | jq -r '.events[] | .data') ]]; then
                         echo "Keptn evaluation found"
-                        score=$(echo ${JSONRESPONSE} | jq -r '.events.data[] | .evaluation.score')
-                        result=$(echo ${JSONRESPONSE} | jq -r '.events.data[] | .evaluation.result')
+                        score=$(echo ${JSONRESPONSE} | jq -r '.events[].data[] | .evaluation.score')
+                        result=$(echo ${JSONRESPONSE} | jq -r '.events[].data[] | .evaluation.result')
                         return 0
                       else
                         echo "No evaluation found"
