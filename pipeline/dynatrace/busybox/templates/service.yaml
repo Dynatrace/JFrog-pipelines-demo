@@ -8,7 +8,7 @@ metadata:
     release: {{ .Release.Name }}
     heritage: {{ .Release.Service }}
     app.kubernetes.io/version: 0.1.3
-    app.kubernetes.io/part-of: { { include "busybox.fullname" . } }
+    app.kubernetes.io/part-of: {{ include "busybox.fullname" . }}
 spec:
   type: {{ .Values.service.type }}
   ports:

@@ -134,7 +134,7 @@ pipelines:
         configuration:
           helmVersion: 3
           affinityGroup: helm_install
-          releaseName: "busyboxpipeline${run_number}"
+          releaseName: "busyboxpipelineJFROG"
           integrations:
             - name: dockeratrifactory
             - name: k8sIntegration
