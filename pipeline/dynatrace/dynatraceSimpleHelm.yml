@@ -248,6 +248,7 @@ pipelines:
             - JSONOutput=$(curl --insecure --location --request GET "${int_KeptnIntegration_API_URL}/controlPlane/v1/project/${int_KeptnIntegration_PROJECT_NAME}" --header "Accept:application/json" --header "x-token:${int_KeptnIntegration_API_TOKEN}" | jq .)
             - echo "$JSONOutput"
             - project=$(echo $JSONOutput| jq -r '.projectName')
+            - echo $project
             - >-
               if [[ ! -z "$project" ]]; then
                  exit 0
