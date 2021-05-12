@@ -278,7 +278,7 @@ pipelines:
             - DYNATRACECONF=$(cat pipeline/keptn/dynatrace.conf.yaml | base64)
             - BODY="{\"resources\":[{\"resourceURI\":\"dynatrace/dynatrace.conf.yaml\",\"resourceContent\":\"${DYNATRACECONF}\"}]}"
             - HTTPCODE=$(curl --write-out "%{http_code}" --insecure --silent --header "Content-Type:application/json" --location --request POST "${int_KeptnIntegration_API_URL}/configuration-service/v1/project/${int_KeptnIntegration_PROJECT_NAME}/resource"  -H 'Accept:application/json' --header "x-token:${int_KeptnIntegration_API_TOKEN}" -d "${BODY}")
-            _ >-
+            - >-
               if [[ "$HTTPCODE" != "200" ]]; then
                  return 1
               fi
