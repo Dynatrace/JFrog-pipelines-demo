@@ -340,8 +340,8 @@ pipelines:
             - cd pipelines-demo
             - apt-get update
             - apt-get upgrade
-            - apt-get add --update openjdk8-jre tzdata curl unzip bash
-            - apt-get add --no-cache nss
+            - apt-get install --update openjdk8-jre tzdata curl unzip bash
+            - apt-get install --no-cache nss
             - mkdir -p /tmp/dependencies
             - curl -L --silent ${JMETER_DOWNLOAD_URL} >  /tmp/dependencies/apache-jmeter-${JMETER_VERSION}.tgz
             - mkdir -p /opt
