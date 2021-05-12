@@ -431,9 +431,11 @@ pipelines:
                   then
                       sleep 20
                   else
-                      score = $(echo ${JSONRESPONSE} | jq -r '.events.data.evaluation.score')
-                      result = $(echo ${JSONRESPONSE} | jq -r '.events.data.evaluation.result')
-                      return 0
+                      if [[ -z $(echo ${JSONRESPONSE} | jq -r '.events.data') ]]; then
+                        score=$(echo ${JSONRESPONSE} | jq -r '.events.data.evaluation.score')
+                        result=$(echo ${JSONRESPONSE} | jq -r '.events.data.evaluation.result')
+                        return 0
+                      fi
                   fi
                   TIME=$(($(date -u +%s) - ${STARTTS}))
               done;
