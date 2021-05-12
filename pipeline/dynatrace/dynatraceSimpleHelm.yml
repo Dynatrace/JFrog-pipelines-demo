@@ -164,7 +164,7 @@ pipelines:
             - printenv
           onSuccess:
             - kubectl get pods
-            - kubectl wait --for=condition=Available deploy/busyboxpipeline${my_releaseName} --timeout=120s
+            - kubectl wait --for=condition=Available deploy/${my_releaseName} --timeout=120s
             - SERVICE_IP=$(kubectl get svc --namespace default busyboxpipeline${run_number} -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
             - add_run_variables SERVICE_IP="${SERVICE_IP}"
           onFailure:
