@@ -18,7 +18,7 @@ spec:
       labels:
         app: {{ include "busybox.name" . }}
         release: {{ .Release.Name }}
-        app.kubernetes.io/version:  {{ .Chart.AppVersion }}
+        app.kubernetes.io/version:  "{{ .Chart.AppVersion }}"
         app.kubernetes.io/part-of : {{ include "busybox.fullname" . }}
     spec:
       containers:
@@ -29,7 +29,7 @@ spec:
             - name: DT_TAGS
               value: release={{ .Release.Name }} app={{ include "busybox.name" . }}
             - name: DT_RELEASE_VERSION
-              value: {{ $.Chart.AppVersion }}
+              value: "{{ .Chart.AppVersion }}"
             - name: DT_RELEASE_STAGE
               value: {{ .Values.stage }}
             - name: DT_RELEASE_PRODUCT
