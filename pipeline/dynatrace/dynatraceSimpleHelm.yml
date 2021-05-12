@@ -415,8 +415,8 @@ pipelines:
                   fi
                   TIME=$(date -u +%s) - ${STARTTS}
               done
-              echo "KEPTN ${score}, result : ${result}
-
+            - echo "KEPTN ${score},result:${result}"
+            - >-
               if[[ $result eq "warning"]
                   echo "Unstable"
                   return 1
