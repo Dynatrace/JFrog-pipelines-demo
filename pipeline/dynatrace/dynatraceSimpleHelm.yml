@@ -164,6 +164,7 @@ pipelines:
             - printenv
           onSuccess:
             - kubectl get pods
+            - kubectl wait --for=condition=Available deploy/busyboxpipeline${my_releaseName} --timeout=120s
             - SERVICE_IP=$(kubectl get svc --namespace default busyboxpipeline${run_number} -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
             - add_run_variables SERVICE_IP="${SERVICE_IP}"
           onFailure:
@@ -244,7 +245,7 @@ pipelines:
             - printenv
             - git clone https://${int_DT_PIPELINE_token}@github.com/JFrogDynatrace/pipelines-demo.git
             - cd pipelines-demo
-            - JSONOutput=$(curl --location --request GET "${int_KeptnIntegration_API_URL}/controlPlane/v1/project/${int_KeptnIntegration_PROJECT_NAME}" --header "Accept:application/json" --header "x-token:${int_KeptnIntegration_API_TOKEN}" | jq .)
+            - JSONOutput=$(curl --insecure --location --request GET "${int_KeptnIntegration_API_URL}/controlPlane/v1/project/${int_KeptnIntegration_PROJECT_NAME}" --header "Accept:application/json" --header "x-token:${int_KeptnIntegration_API_TOKEN}" | jq .)
             - project=$(echo $JSONOutput| jq -r '.projectName')
             - >-
               if [[ ! -z "$project" ]]; then
@@ -253,19 +254,20 @@ pipelines:
             - sed -i "s/PROJECTTOREPLACE/${int_KeptnIntegration_PROJECT_NAME}/" pipeline/keptn/shipyard.yaml
             - sed -i "s/STAGETOREPLACE/${int_KeptnIntegration_KEPTN_STAGE}/" pipeline/keptn/shipyard.yaml
             - SHIPYARD=$(cat pipeline/keptn/shipyard.yaml | base64)
-            - HTTPCODE=$(curl --write-out "%{http_code} --silent --header 'Content-Type:application/json' --location --request POST "${int_KeptnIntegration_API_URL}/controlPlane/v1/project"  -H 'Accept:application/json' --header "x-token:${int_KeptnIntegration_API_TOKEN}" -d "{\"name\":\"${int_KeptnIntegration_PROJECT_NAME}\",\"shipyard\":\"${SHIPYARD}\"}")
+            - echo "{\"name\":\"${int_KeptnIntegration_PROJECT_NAME}\",\"shipyard\":\"${SHIPYARD}\"}"
+            - HTTPCODE=$(curl --write-out "%{http_code} --insecure --silent --header 'Content-Type:application/json' --location --request POST "${int_KeptnIntegration_API_URL}/controlPlane/v1/project"  -H 'Accept:application/json' --header "x-token:${int_KeptnIntegration_API_TOKEN}" -d "{\"name\":\"${int_KeptnIntegration_PROJECT_NAME}\",\"shipyard\":\"${SHIPYARD}\"}")
             - >-
               if [[ "$HTTPCODE" != "200" ]]; then
                  exit 1
               fi
             - echo "KEPTN project created successfully"
-            - HTTPCODE=$(curl --write-out "%{http_code} --silent --header 'Content-Type:application/json' --location --request POST "${int_KeptnIntegration_API_URL}/controlPlane/v1/project/${int_KeptnIntegration_PROJECT_NAME}/service"  -H 'Accept:application/json' --header "x-token:${int_KeptnIntegration_API_TOKEN}" -d "{\"serviceName\":\"${int_KeptnIntegration_SERVICE_NAME}" ")
+            - HTTPCODE=$(curl --write-out "%{http_code} --insecure --silent --header 'Content-Type:application/json' --location --request POST "${int_KeptnIntegration_API_URL}/controlPlane/v1/project/${int_KeptnIntegration_PROJECT_NAME}/service"  -H 'Accept:application/json' --header "x-token:${int_KeptnIntegration_API_TOKEN}" -d "{\"serviceName\":\"${int_KeptnIntegration_SERVICE_NAME}" ")
             - >-
               if [[ "$HTTPCODE" != "200" ]]; then
                 exit 1
               fi
             - echo "KEPTN Service created successfully"
-            - HTTPCODE=$(curl --write-out "%{http_code}" --silent --header "Content-Type:application/json" --location --request POST "${int_KeptnIntegration_API_URL}/v1/event"  -H 'Accept:application/json' --header "x-token:${int_KeptnIntegration_API_TOKEN}" -d "{\"data\":{ \"project\":\"${int_KeptnIntegration_PROJECT_NAME}\", \"service:\":\"${int_KeptnIntegration_SERVICE_NAME}\", \"type\":\"{int_KeptnIntegration_Monitoring}\"},\"datacontenttype\":\"application/json\",\"source\":\"Jfrog\", \"specversion\" \"1.0\", \"type\":\"sh.keptn.event.monitoring.configure\"}")
+            - HTTPCODE=$(curl --write-out "%{http_code}" --insecure --silent --header "Content-Type:application/json" --location --request POST "${int_KeptnIntegration_API_URL}/v1/event"  -H 'Accept:application/json' --header "x-token:${int_KeptnIntegration_API_TOKEN}" -d "{\"data\":{ \"project\":\"${int_KeptnIntegration_PROJECT_NAME}\", \"service:\":\"${int_KeptnIntegration_SERVICE_NAME}\", \"type\":\"{int_KeptnIntegration_Monitoring}\"},\"datacontenttype\":\"application/json\",\"source\":\"Jfrog\", \"specversion\" \"1.0\", \"type\":\"sh.keptn.event.monitoring.configure\"}")
             - >-
               if [[ "$HTTPCODE" != "200" ]]; then
                 exit 1
@@ -347,7 +349,7 @@ pipelines:
             - echo "Sending evaluation event to Keptn for ${int_KeptnIntegration_PROJECT_NAME}.${int_KeptnIntegration_KEPTN_STAGE}.${int_KeptnIntegration_SERVICE_NAME}"
           onExecute:
             - DATA="{\"data\":{\"teststrategy\":\"manual\",\"project\":\"${int_KeptnIntegration_PROJECT_NAME}\",\"stage\":\"${int_KeptnIntegration_KEPTN_STAGE}\",\"service\":\"${int_KeptnIntegration_SERVICE_NAME}\",\"monitoring\":\"${int_KeptnIntegration_Monitoring}\",\"labels\":{\"buildId\":\"${run_id}\",\"jobname\":\"${pipeline_name}\",\"buildNumber\":\"${run_number}\",\"joburl\":\"${step_url}\" }, \"status\":\"succeeded\",\"result\":\"pass\",\"test\":{\"start\":\"${keptnStart}\",\"end\":\"${keptnEnd}\" },\"evaluation\":{\"start\":\"${starttime}\",\"end\":\"${endtime}\"},\"image\":\"${pipeline_name}\",},\"datacontenttype\":\"application/json\",\"source\":\"Jfrog\",\"specversion\":\"1.0\",\"type\":\"sh.keptn.event.evaluation.triggered\"}"
-            - HTTPCODE=$(curl --write-out "%{http_code} --silent --header 'Content-Type:application/json' --location --request POST "${int_KeptnIntegration_API_URL}/v1/event"  -H 'Accept:application/json' --header "x-token:${int_KeptnIntegration_API_TOKEN}" -d "${DATA}")
+            - HTTPCODE=$(curl --write-out "%{http_code} --insecure --silent --header 'Content-Type:application/json' --location --request POST "${int_KeptnIntegration_API_URL}/v1/event"  -H 'Accept:application/json' --header "x-token:${int_KeptnIntegration_API_TOKEN}" -d "${DATA}")
             - >-
               if [[ "$HTTPCODE" != "200" ]]; then
                 exit 1
