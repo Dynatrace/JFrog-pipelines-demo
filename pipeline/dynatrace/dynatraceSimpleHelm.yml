@@ -434,7 +434,7 @@ pipelines:
                   *      ) TEST="KO" ;;
                   esac
 
-                  if [ $TEST = "KO" ]; then
+                  if [ "$TEST" = "KO" ]; then
                       sleep 20
                   else
                       if [ -z $(echo ${JSONRESPONSE} | jq -r '.events[].data') ]; then
