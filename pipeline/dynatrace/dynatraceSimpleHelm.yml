@@ -434,7 +434,7 @@ pipelines:
                   *      ) TEST="KO" ;;
                   esac
 
-                  if [ "${TEST}" = "KO" ]; then
+                  if [ "$TEST" = "OK" ]; then
                       sleep 20
                       echo "not a evaluation finished event"
                   else
