@@ -434,14 +434,14 @@ pipelines:
                   *      ) TEST="KO" ;;
                   esac
 
-                  if [ $TEST = "KO" ]; then
+                  if [ "$TEST" = "KO" ]; then
                       sleep 20
                   else
-                      test=$(echo $JSONRESPONSE | jq -r ".events[].data")
+                      test=$(echo "${JSONRESPONSE}" | jq -r ".events[].data")
                       if [ ! -z "$test" ]; then
                         echo "Keptn evaluation found"
-                        score=$(echo $JSONRESPONSE | jq -r ".events[].data.evaluation.score")
-                        result=$(echo $JSONRESPONSE | jq -r ".events[].data.evaluation.result")
+                        score=$(echo "${JSONRESPONSE} | jq -r ".events[].data.evaluation.score")
+                        result=$(echo ${JSONRESPONSE} | jq -r ".events[].data.evaluation.result")
                         break
                       else
                         echo "No evaluation found"
@@ -451,12 +451,12 @@ pipelines:
               done;
             - echo "KEPTN ${score},result:${result}"
             - >-
-              if[ $result = "warning" ]
+              if[ "$result" = "warning" ]
                   echo "Unstable"
                   return 1
               then
               else
-                if[ $result = "pass" ]
+                if[ "$result" = "pass" ]
                    echo "SUCCESS"
                    return 0
                 else
