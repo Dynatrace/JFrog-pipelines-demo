@@ -436,15 +436,17 @@ pipelines:
 
                   if [ "$TEST" = "KO" ]; then
                       sleep 20
+                      echo "not a evaluation finished event"
                   else
+                      echo "evaluation event"
                       test=$(echo "${JSONRESPONSE}" | jq -r ".events[].data")
                       if [ ! -z "$test" ]; then
-                        echo "Keptn evaluation found"
+                        echo "Keptn evaluation has data"
                         score=$(echo "${JSONRESPONSE}" | jq -r ".events[].data.evaluation.score")
                         result=$(echo "${JSONRESPONSE}" | jq -r ".events[].data.evaluation.result")
                         break
                       else
-                        echo "No evaluation found"
+                        echo "No data for this evaluation"
                       fi
                   fi
                   TIME=$(($(date -u +%s) - ${STARTTS}))
