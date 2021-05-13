@@ -453,12 +453,11 @@ pipelines:
               done;
             - echo "KEPTN ${score},result:${result}"
             - >-
-              if[ "$result" = "warning" ]
+              if [ "$result" = "warning" ]; then
                   echo "Unstable"
                   return 1
-              then
               else
-                if[ "$result" = "pass" ]
+                if [ "$result" = "pass" ]; then
                    echo "SUCCESS"
                    return 0
                 else
