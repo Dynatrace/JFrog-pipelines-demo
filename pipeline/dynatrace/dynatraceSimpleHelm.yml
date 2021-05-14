@@ -111,8 +111,8 @@ pipelines:
             - echo "Start"
             - printenv
 
-      # Install Dynatrace agent on the cluster. Use the separate namespace
-      - name: install_oneAgent_operator
+      # check if Dynatrace agent is in a the the cluster.
+      - name: check_oneAgent_operator
         type: Bash
         configuration:
           affinityGroup: helm_install
@@ -149,7 +149,7 @@ pipelines:
             - name: simplehelmChart
             - name: dockerImage
           inputSteps:
-            - name: install_oneAgent_operator
+            - name: check_oneAgent_operator
           valueFilePaths:
             - values.yaml
         execution:
