@@ -1,1 +1,1 @@
-# pipelines-demo
+# JFrog-pipelines-demo
