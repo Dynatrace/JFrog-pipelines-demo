@@ -43,7 +43,7 @@ namespaces:
 helmRepos:
   stable: "https://kubernetes-charts.storage.googleapis.com"
   incubator: "http://storage.googleapis.com/kubernetes-charts-incubator"
-  mycharts: "s3://atanu-poc/helm/charts"
+  mycharts: "<Charts in s3 bucket>"
   #myGCSrepo: "gs://my-GCS-private-repo/charts"
 
 # define the desired state of your applications helm charts
